@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: you
+      changes:
+        - createTable:
+            tableName: analysis_results
+            columns:
+              - column:
+                  name: record_id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: research_file
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: analysis_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: client_id
+                  type: int
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: analysis_results
+            baseColumnNames: client_id
+            constraintName: fk_analysis_result_client
+            referencedTableName: clients
+            referencedColumnNames: id

@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: you
+      changes:
+        - createTable:
+            tableName: disease_history
+            columns:
+              - column:
+                  name: record_id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: doctor_id
+                  type: int
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: first_name_doctor
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name_doctor
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: profession
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: disease
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: disease_history
+            baseColumnNames: doctor_id
+            constraintName: fk_disease_history_doctor
+            referencedTableName: doctors
+            referencedColumnNames: id

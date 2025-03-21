@@ -1,9 +1,20 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "doctors")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Doctor {
 
     @Id
@@ -29,8 +40,17 @@ public class Doctor {
     @Column(name = "password", nullable = false)
     private String password;
 
-    public Doctor() {}
+    // Связь 1:N с таблицей "История болезни"
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<DiseaseHistory> diseaseHistories = new ArrayList<>();
 
+    // Связь 1:N с таблицей "Список записей"
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<AppointmentRecord> appointmentRecords = new ArrayList<>();
+
+
+    //public Doctor() {}
+    /*
     public Doctor(String lastName, String firstName, String specialization, String login, String password) {
         this.lastName = lastName;
         this.firstName = firstName;
@@ -103,7 +123,7 @@ public class Doctor {
     public void setPassword(String password) {
         this.password = password;
     }
-
+    */
     @Override
     public String toString() {
         return "Doctor{" +

@@ -71,11 +71,6 @@ public class HibernateConfig {
         dataSource.setUrl("jdbc:postgresql://localhost:5432/mydatabase");
         dataSource.setUsername("postgres");
         dataSource.setPassword("1234");
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("PostgreSQL JDBC Driver not found", e);
-        }
         return dataSource;
     }
 

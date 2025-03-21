@@ -2,6 +2,10 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 
+
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "clients")
 public class Client {
@@ -28,6 +32,21 @@ public class Client {
 
     @Column(name = "passport", nullable = false)
     private String passport;
+
+
+    // Связь 1:1 с таблицей "История болезни"
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "disease_history_id", referencedColumnName = "record_id")
+    private DiseaseHistory diseaseHistory;
+
+    // Связь 1:N с таблицей "Результаты анализов"
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<AnalysisResult> analysisResults = new ArrayList<>();
+
+    // Связь 1:N с таблицей "Список записей"
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<AppointmentRecord> appointmentRecords = new ArrayList<>();
+
 
     public Client() {}
 
