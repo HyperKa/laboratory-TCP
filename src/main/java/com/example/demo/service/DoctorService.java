@@ -5,6 +5,7 @@ import com.example.demo.entity.Doctor;
 import com.example.demo.repository.ClientRepository;
 import com.example.demo.repository.DoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -34,6 +35,10 @@ public class DoctorService {
         doctorRepository.deleteById(id);
     }
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+
     // получение списка столбцов
     public List<String> getDoctorColumns() {
         return Arrays.stream(Client.class.getDeclaredFields())
@@ -49,7 +54,7 @@ public class DoctorService {
         doctor.setSpecialization(specialization);
         doctor.setExperience(experience);
         doctor.setLogin(login);
-        doctor.setPassword(password);
+        doctor.setPassword(passwordEncoder.encode(doctor.getPassword()));
         return doctorRepository.save(doctor);
     }
 }
