@@ -16,7 +16,6 @@ public class DemoApplication implements CommandLineRunner {
 
     @Autowired
     private ClientService clientService;
-
     @Autowired
     private DoctorService doctorService;
 
