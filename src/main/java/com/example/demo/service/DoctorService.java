@@ -51,7 +51,7 @@ public class DoctorService {
         doctor.setSpecialization(specialization);
         doctor.setExperience(experience);
         doctor.setLogin(login);
-        doctor.setPassword(password);
+        doctor.setHashPassword(password);
         return doctorRepository.save(doctor);
     }
 }
