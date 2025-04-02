@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Doctor;
 import com.example.demo.repository.DoctorRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class DoctorService {
 
     @Autowired
@@ -67,5 +69,35 @@ public class DoctorService {
         doctor.setPassword(passwordEncoder.encode(password)); // Хешируем переданный пароль
        // assertTrue(passwordEncoder.matches("hshsga6512Tr",passwordEncoder.encode(password)));
         return doctorRepository.save(doctor);
+    }
+
+    // Обновление доктора
+    public Doctor updateDoctor(Long id, Doctor updatedDoctor) {
+        // Находим существующего врача по ID
+        Doctor existingDoctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+
+        // Обновляем поля существующего врача данными из updatedDoctor
+        if (updatedDoctor.getLastName() != null) {
+            existingDoctor.setLastName(updatedDoctor.getLastName());
+        }
+        if (updatedDoctor.getFirstName() != null) {
+            existingDoctor.setFirstName(updatedDoctor.getFirstName());
+        }
+        if (updatedDoctor.getSpecialization() != null) {
+            existingDoctor.setSpecialization(updatedDoctor.getSpecialization());
+        }
+        if (updatedDoctor.getExperience() != null) {
+            existingDoctor.setExperience(updatedDoctor.getExperience());
+        }
+        if (updatedDoctor.getLogin() != null) {
+            existingDoctor.setLogin(updatedDoctor.getLogin());
+        }
+        if (updatedDoctor.getPassword() != null) {
+            existingDoctor.setPassword(passwordEncoder.encode(updatedDoctor.getPassword()));
+        }
+
+        // Сохраняем обновленного врача в базу данных
+        return doctorRepository.save(existingDoctor);
     }
 }

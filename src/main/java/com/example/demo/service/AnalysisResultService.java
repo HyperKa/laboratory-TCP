@@ -27,6 +27,8 @@ public class AnalysisResultService {
 
     @Autowired
     private AnalysisResultRepository analysisResultRepository;
+
+    @Autowired
     private ClientRepository clientRepository;
 
     public List<AnalysisResult> getAllClients() {

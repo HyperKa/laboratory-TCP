@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.DiseaseHistoryDTO;
 import com.example.demo.entity.DiseaseHistory;
 import com.example.demo.entity.Doctor;
 import com.example.demo.repository.DiseaseHistoryRepository;
@@ -87,4 +88,31 @@ public class DiseaseHistoryService {
     public void deleteRecord(int recordId) {
         diseaseHistoryRepository.deleteById(recordId);
     }
+
+    // Преобразование Entity -> DTO
+    public DiseaseHistoryDTO convertToDTO(DiseaseHistory history) {
+        DiseaseHistoryDTO dto = new DiseaseHistoryDTO();
+        dto.setRecordId(history.getRecordId());
+        dto.setFirstNameDoctor(history.getFirstNameDoctor());
+        dto.setLastNameDoctor(history.getLastNameDoctor());
+        dto.setProfession(history.getProfession());
+        dto.setStartDate(history.getStartDate());
+        dto.setEndDate(history.getEndDate());
+        dto.setDisease(history.getDisease());
+        return dto;
+    }
+
+    // Преобразование DTO -> Entity
+    private DiseaseHistory convertToEntity(DiseaseHistoryDTO dto) {
+        DiseaseHistory history = new DiseaseHistory();
+        history.setRecordId(dto.getRecordId());
+        history.setFirstNameDoctor(dto.getFirstNameDoctor());
+        history.setLastNameDoctor(dto.getLastNameDoctor());
+        history.setProfession(dto.getProfession());
+        history.setStartDate(dto.getStartDate());
+        history.setEndDate(dto.getEndDate());
+        history.setDisease(dto.getDisease());
+        return history;
+    }
+
 }

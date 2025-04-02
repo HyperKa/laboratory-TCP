@@ -10,6 +10,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.List;
+import java.util.Optional;
 
 @SpringBootApplication
 public class DemoApplication implements CommandLineRunner {
@@ -38,21 +39,23 @@ public class DemoApplication implements CommandLineRunner {
         System.out.println("Столбцы таблицы clients: " + clientService.getClientColumns());
 
         // 2. Создание нового клиента
-        var newClient = clientService.createClient(30, "Male", "Smith", "John", "123 Main St", "AB123456");
-        System.out.println("Новый клиент добавлен: " + newClient);
+        //var newClient = clientService.createClient(30, "Male", "Smith", "John", "123 Main St", "AB123456");
+        //System.out.println("Новый клиент добавлен: " + newClient);
 
+        /*
         var newDoctor = doctorService.createDoctor("Ivanov", "Ivan", "p", "25 years",
                 "hgsfa1726ivan", "hshsga6512Tr");
         System.out.println("Новый врач добавлен: " + newDoctor);
+        */
 
         // 3. Получение всех клиентов
         List<Client> allClients = clientService.getAllClients();
         System.out.println("Список всех клиентов: " + allClients);
 
         // 4. Получение клиента по ID
-        Long clientId = (long) newClient.getId();
-        Client retrievedClient = clientService.getClientById(clientId);
-        System.out.println("Получен клиент по ID: " + retrievedClient);
+        //Long clientId = (long) newClient.getId();
+        //Optional<Client> retrievedClient = clientService.getClientById(clientId);
+        //System.out.println("Получен клиент по ID: " + retrievedClient);
 
         /*
         // 5. Удаление клиента

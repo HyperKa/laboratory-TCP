@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -43,10 +44,12 @@ public class Doctor {
 
     // Связь 1:N с таблицей "История болезни"
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("doctor")
     private List<DiseaseHistory> diseaseHistories = new ArrayList<>();
 
     // Связь 1:N с таблицей "Список записей"
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("doctor")
     private List<AppointmentRecord> appointmentRecords = new ArrayList<>();
 
     public void setHashPassword(String password) {

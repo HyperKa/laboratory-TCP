@@ -87,4 +87,34 @@ public class AppointmentRecordService {
         // Пример простой генерации (можно заменить на более сложную логику)
         return Math.round(Math.random() * 100000L);
     }
+
+    public AppointmentRecord updateAppointmentRecord(Long clientId, Long recordId, AppointmentRecord updatedRecord) {
+        // Находим существующую запись по составному ключу
+        AppointmentRecordId id = new AppointmentRecordId(clientId, recordId);
+        AppointmentRecord existingRecord = appointmentRecordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Запись с ID " + id + " не найдена"));
+
+        // Обновляем поля записи
+        if (updatedRecord.getClient() != null) {
+            existingRecord.setClient(updatedRecord.getClient());
+        }
+        if (updatedRecord.getDoctor() != null) {
+            existingRecord.setDoctor(updatedRecord.getDoctor());
+        }
+        if (updatedRecord.getAppointmentDate() != null) {
+            existingRecord.setAppointmentDate(updatedRecord.getAppointmentDate());
+        }
+        if (updatedRecord.getAppointmentTime() != null) {
+            existingRecord.setAppointmentTime(updatedRecord.getAppointmentTime());
+        }
+        if (updatedRecord.getServiceName() != null) {
+            existingRecord.setServiceName(updatedRecord.getServiceName());
+        }
+        if (updatedRecord.getDiseaseHistory() != null) {
+            existingRecord.setDiseaseHistory(updatedRecord.getDiseaseHistory());
+        }
+
+        // Сохраняем обновленную запись
+        return appointmentRecordRepository.save(existingRecord);
+    }
 }

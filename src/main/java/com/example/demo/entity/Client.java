@@ -1,10 +1,12 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import org.springframework.http.ResponseEntity;
 
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "clients")
@@ -135,4 +137,5 @@ public class Client {
                 ", passport='" + passport + '\'' +
                 '}';
     }
+
 }
