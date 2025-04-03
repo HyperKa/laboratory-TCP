@@ -38,17 +38,17 @@ public class AppointmentRecordService {
     }
 
     // Получение записи по составному ключу
-    public Optional<AppointmentRecord> getRecordById(Long clientId, Long recordId) {
+    public Optional<AppointmentRecord> getRecordById(Integer clientId, Integer recordId) {
         AppointmentRecordId id = new AppointmentRecordId(clientId, recordId);
         return appointmentRecordRepository.findById(id);
     }
 
     // Создание новой записи
-    public AppointmentRecord createRecord(Long clientId, Long doctorId, LocalDate appointmentDate,
+    public AppointmentRecord createRecord(Integer clientId, Long doctorId, LocalDate appointmentDate,
                                           LocalTime appointmentTime, String serviceName, Long diseaseHistoryId) {
 
         // Находим клиента
-        Client client = clientRepository.findById(clientId)
+        Client client = clientRepository.findById(Long.valueOf(clientId))
                 .orElseThrow(() -> new RuntimeException("Клиент с ID " + clientId + " не найден"));
 
         // Находим врача
@@ -77,18 +77,18 @@ public class AppointmentRecordService {
     }
 
     // Удаление записи
-    public void deleteRecord(Long clientId, Long recordId) {
+    public void deleteRecord(Integer clientId, Integer recordId) {
         AppointmentRecordId id = new AppointmentRecordId(clientId, recordId);
         appointmentRecordRepository.deleteById(id);
     }
 
     // Генерация уникального значения для recordId
-    private Long generateRecordId() {
+    private Integer generateRecordId() {
         // Пример простой генерации (можно заменить на более сложную логику)
-        return Math.round(Math.random() * 100000L);
+        return (int) Math.round(Math.random() * 100000);
     }
 
-    public AppointmentRecord updateAppointmentRecord(Long clientId, Long recordId, AppointmentRecord updatedRecord) {
+    public AppointmentRecord updateAppointmentRecord(Integer clientId, Integer recordId, AppointmentRecord updatedRecord) {
         // Находим существующую запись по составному ключу
         AppointmentRecordId id = new AppointmentRecordId(clientId, recordId);
         AppointmentRecord existingRecord = appointmentRecordRepository.findById(id)

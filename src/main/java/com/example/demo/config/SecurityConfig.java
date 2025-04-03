@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/v1/doctors/**").permitAll() // Разрешить доступ к API врачей
                         .requestMatchers("/api/v1/clients/**").permitAll()
-                        .requestMatchers("/api/v1/appointment_records/**").permitAll()
+                        .requestMatchers("/api/v1/appointment-records/**").permitAll()
                         .requestMatchers("/api/v1/disease-history/**").permitAll()
                         .requestMatchers("/api/v1/analysis-results/**").permitAll()
                     .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
