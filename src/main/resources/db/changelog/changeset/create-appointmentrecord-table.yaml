@@ -7,12 +7,14 @@ databaseChangeLog:
             tableName: appointment_records
             columns:
               - column:
-                  name: client_id
+                  name: record_id
                   type: int
+                  autoIncrement: true
                   constraints:
+                    primaryKey: true
                     nullable: false
               - column:
-                  name: record_id
+                  name: client_id
                   type: int
                   constraints:
                     nullable: false
@@ -41,10 +43,6 @@ databaseChangeLog:
                   type: int
                   constraints:
                     nullable: true
-        - addPrimaryKey:
-            columnNames: client_id, record_id
-            constraintName: pk_appointment_record_new
-            tableName: appointment_records
         - addForeignKeyConstraint:
             baseTableName: appointment_records
             baseColumnNames: client_id

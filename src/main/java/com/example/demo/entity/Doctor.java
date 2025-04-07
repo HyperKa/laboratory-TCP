@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -50,6 +51,7 @@ public class Doctor {
     // Связь 1:N с таблицей "Список записей"
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("doctor")
+    @JsonManagedReference // Родительская сторона
     private List<AppointmentRecord> appointmentRecords = new ArrayList<>();
 
     public void setHashPassword(String password) {

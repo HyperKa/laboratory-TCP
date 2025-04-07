@@ -1,11 +1,23 @@
+#databaseChangeLog:
+#  - include:
+#      file: db/changelog/changeset/create-doctor-table.yaml
+#  - include:
+#      file: db/changelog/changeset/create-diseasehistory-table.yaml
+#  - include:
+#      file: db/changelog/changeset/create-client-table.yaml
+#
+#  - include:
+#      file: db/changelog/changeset/create-analysisresult-table.yaml
+#  - include:
+#      file: db/changelog/changeset/create-appointmentrecord-table.yaml
+
 databaseChangeLog:
   - include:
       file: db/changelog/changeset/create-doctor-table.yaml
   - include:
-      file: db/changelog/changeset/create-diseasehistory-table.yaml
-  - include:
       file: db/changelog/changeset/create-client-table.yaml
-
+  - include:
+      file: db/changelog/changeset/create-diseasehistory-table.yaml
   - include:
       file: db/changelog/changeset/create-analysisresult-table.yaml
   - include:

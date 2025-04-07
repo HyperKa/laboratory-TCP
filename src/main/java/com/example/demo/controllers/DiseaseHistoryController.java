@@ -38,15 +38,7 @@ public class DiseaseHistoryController {
 
     @PostMapping
     public ResponseEntity<DiseaseHistory> createDiseaseHistory(@RequestBody DiseaseHistoryDTO request) {
-        DiseaseHistory createdRecord = diseaseHistoryService.createRecord(
-            request.getDoctorId(),
-            request.getFirstNameDoctor(),
-            request.getLastNameDoctor(),
-            request.getProfession(),
-            request.getStartDate(),
-            request.getEndDate(),
-            request.getDisease()
-        );
+        DiseaseHistory createdRecord = diseaseHistoryService.createRecord(request);
         return ResponseEntity.status(201).body(createdRecord);
     }
     // READ: Получение всех историй болезни
@@ -93,16 +85,7 @@ public class DiseaseHistoryController {
             @PathVariable int recordId,
             @RequestBody DiseaseHistoryDTO request) {
 
-        DiseaseHistory updatedRecord = diseaseHistoryService.updateRecord(
-            recordId,
-            request.getDoctorId(),
-            request.getFirstNameDoctor(),
-            request.getLastNameDoctor(),
-            request.getProfession(),
-            request.getStartDate(),
-            request.getEndDate(),
-            request.getDisease()
-        );
+        DiseaseHistory updatedRecord = diseaseHistoryService.updateRecord(recordId, request);
         DiseaseHistoryDTO dto = diseaseHistoryService.convertToDTO(updatedRecord);
         return ResponseEntity.ok(dto);
     }

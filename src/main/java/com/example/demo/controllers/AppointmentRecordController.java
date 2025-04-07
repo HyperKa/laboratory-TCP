@@ -91,71 +91,41 @@ public class AppointmentRecordController {
     @Autowired
     private AppointmentRecordService appointmentRecordService;
 
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
-    private DoctorRepository doctorRepository;
-
-    @Autowired
-    private DiseaseHistoryRepository diseaseHistoryRepository;
     // Получение всех записей
     @GetMapping
-    public ResponseEntity<List<AppointmentRecord>> getAllRecords() {
-        return ResponseEntity.ok(appointmentRecordService.getAllRecords());
+    public ResponseEntity<List<AppointmentRecordDTO>> getAllRecords() {
+        return ResponseEntity.ok(appointmentRecordService.getAllRecordsAsDTO());
     }
 
-    // Получение записи по составному ключу
-    @GetMapping("/{clientId}/{recordId}")
-    public ResponseEntity<AppointmentRecord> getRecordById(
-            @PathVariable Integer clientId,
-            @PathVariable Integer recordId) {
-
-        return appointmentRecordService.getRecordById(clientId, recordId)
+    // Получение записи по ID
+    @GetMapping("/{recordId}")
+    public ResponseEntity<AppointmentRecordDTO> getRecordById(@PathVariable Integer recordId) {
+        return appointmentRecordService.getRecordByIdAsDTO(recordId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Создание новой записи
     @PostMapping
-    public ResponseEntity<AppointmentRecord> createRecord(@RequestBody AppointmentRecordDTO dto) {
-        AppointmentRecord record = appointmentRecordService.createRecord(
-                dto.getClientId(),
-                dto.getDoctorId(),
-                dto.getAppointmentDate(),
-                dto.getAppointmentTime(),
-                dto.getServiceName(),
-                dto.getDiseaseHistoryId()
-        );
-        //return ResponseEntity.ok(record);
-        return ResponseEntity.status(201).body(record);
+    public ResponseEntity<AppointmentRecordDTO> createRecord(@RequestBody AppointmentRecordDTO dto) {
+        AppointmentRecord createdRecord = appointmentRecordService.createRecordFromDTO(dto);
+        return ResponseEntity.status(201).body(appointmentRecordService.convertToDTO(createdRecord));
     }
 
     // Обновление записи
-    @PutMapping("/{clientId}/{recordId}")
-    public ResponseEntity<AppointmentRecord> updateRecord(
-            @PathVariable Integer clientId,
+    @PutMapping("/{recordId}")
+    public ResponseEntity<AppointmentRecordDTO> updateRecord(
             @PathVariable Integer recordId,
             @RequestBody AppointmentRecordDTO dto) {
 
-        AppointmentRecord updatedRecord = new AppointmentRecord();
-        updatedRecord.setClientById(dto.getClientId(), clientRepository);
-        updatedRecord.setDoctorById(dto.getDoctorId(), doctorRepository);
-        updatedRecord.setAppointmentDate(dto.getAppointmentDate());
-        updatedRecord.setAppointmentTime(dto.getAppointmentTime());
-        updatedRecord.setServiceName(dto.getServiceName());
-        updatedRecord.setDiseaseHistoryById(dto.getDiseaseHistoryId(), diseaseHistoryRepository);
-
-        return ResponseEntity.ok(appointmentRecordService.updateAppointmentRecord(clientId, recordId, updatedRecord));
+        AppointmentRecord updatedRecord = appointmentRecordService.updateRecordFromDTO(recordId, dto);
+        return ResponseEntity.ok(appointmentRecordService.convertToDTO(updatedRecord));
     }
 
     // Удаление записи
-    @DeleteMapping("/{clientId}/{recordId}")
-    public ResponseEntity<Void> deleteRecord(
-            @PathVariable Integer clientId,
-            @PathVariable Integer recordId) {
-
-        appointmentRecordService.deleteRecord(clientId, recordId);
+    @DeleteMapping("/{recordId}")
+    public ResponseEntity<Void> deleteRecord(@PathVariable Integer recordId) {
+        appointmentRecordService.deleteRecord(recordId);
         return ResponseEntity.noContent().build();
     }
 }

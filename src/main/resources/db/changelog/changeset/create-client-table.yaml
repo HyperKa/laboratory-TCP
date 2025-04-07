@@ -46,14 +46,15 @@ databaseChangeLog:
                   type: varchar(100)
                   constraints:
                     nullable: false
-              - column:
-                  name: disease_history_id
-                  type: int
-                  constraints:
-                    nullable: true
-        - addForeignKeyConstraint:
-            baseTableName: clients
-            baseColumnNames: disease_history_id
-            constraintName: fk_client_disease_history
-            referencedTableName: disease_history
-            referencedColumnNames: record_id
+
+#              - column:
+#                  name: disease_history_id
+#                  type: int
+#                  constraints:
+#                    nullable: true
+#        - addForeignKeyConstraint:
+#            baseTableName: clients
+#            baseColumnNames: disease_history_id
+#            constraintName: fk_client_disease_history
+#            referencedTableName: disease_history
+#            referencedColumnNames: record_id

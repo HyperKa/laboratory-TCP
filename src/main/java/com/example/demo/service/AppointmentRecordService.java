@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.AppointmentRecordDTO;
 import com.example.demo.entity.AppointmentRecord;
 import com.example.demo.entity.AppointmentRecordId;
 import com.example.demo.entity.Client;
@@ -11,13 +12,16 @@ import com.example.demo.repository.DoctorRepository;
 import com.example.demo.repository.DiseaseHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class AppointmentRecordService {
 
     @Autowired
@@ -32,89 +36,99 @@ public class AppointmentRecordService {
     @Autowired
     private DiseaseHistoryRepository diseaseHistoryRepository;
 
-    // Получение всех записей
-    public List<AppointmentRecord> getAllRecords() {
-        return appointmentRecordRepository.findAll();
+    // Преобразование Entity -> DTO
+    public AppointmentRecordDTO convertToDTO(AppointmentRecord record) {
+        return new AppointmentRecordDTO(record);
     }
 
-    // Получение записи по составному ключу
-    public Optional<AppointmentRecord> getRecordById(Integer clientId, Integer recordId) {
-        AppointmentRecordId id = new AppointmentRecordId(clientId, recordId);
-        return appointmentRecordRepository.findById(id);
-    }
-
-    // Создание новой записи
-    public AppointmentRecord createRecord(Integer clientId, Long doctorId, LocalDate appointmentDate,
-                                          LocalTime appointmentTime, String serviceName, Long diseaseHistoryId) {
-
-        // Находим клиента
-        Client client = clientRepository.findById(Long.valueOf(clientId))
-                .orElseThrow(() -> new RuntimeException("Клиент с ID " + clientId + " не найден"));
-
-        // Находим врача
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new RuntimeException("Врач с ID " + doctorId + " не найден"));
-
-        // Находим историю болезни (если есть)
-        DiseaseHistory diseaseHistory = null;
-        if (diseaseHistoryId != null) {
-            diseaseHistory = diseaseHistoryRepository.findById(Math.toIntExact(diseaseHistoryId))
-                    .orElseThrow(() -> new RuntimeException("История болезни с ID " + diseaseHistoryId + " не найдена"));
+    // Преобразование DTO -> Entity
+    public AppointmentRecord convertToEntity(AppointmentRecordDTO dto) {
+        AppointmentRecord record = new AppointmentRecord();
+        // Загружаем клиента по clientId
+        if (dto.getClientId() != null) {
+            Client client = clientRepository.findById(Long.valueOf(dto.getClientId()))
+                    .orElseThrow(() -> new RuntimeException("Client not found with ID: " + dto.getClientId()));
+            record.setClient(client);
+        } else {
+            throw new RuntimeException("clientId cannot be null");
         }
 
-        // Создаем объект записи
-        AppointmentRecord record = new AppointmentRecord();
-        record.setId(new AppointmentRecordId(clientId, generateRecordId())); // Генерация recordId
-        record.setClient(client);
-        record.setDoctor(doctor);
-        record.setAppointmentDate(appointmentDate);
-        record.setAppointmentTime(appointmentTime);
-        record.setServiceName(serviceName);
-        record.setDiseaseHistory(diseaseHistory);
+        // Загружаем врача по doctorId
+        if (dto.getDoctorId() != null) {
+            Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+                    .orElseThrow(() -> new RuntimeException("Doctor not found with ID: " + dto.getDoctorId()));
+            record.setDoctor(doctor);
+        } else {
+            throw new RuntimeException("doctorId cannot be null");
+        }
 
-        // Сохраняем запись
+        // Устанавливаем остальные поля
+        record.setAppointmentDate(dto.getAppointmentDate());
+        record.setAppointmentTime(dto.getAppointmentTime());
+        record.setServiceName(dto.getServiceName());
+
+        // Загружаем историю болезни по diseaseHistoryId
+        if (dto.getDiseaseHistoryId() != null) {
+            DiseaseHistory diseaseHistory = diseaseHistoryRepository.findById(dto.getDiseaseHistoryId())
+                    .orElseThrow(() -> new RuntimeException("DiseaseHistory not found with ID: " + dto.getDiseaseHistoryId()));
+            record.setDiseaseHistory(diseaseHistory);
+        }
+
+        return record;
+    }
+
+    // Получение всех записей в виде DTO
+    public List<AppointmentRecordDTO> getAllRecordsAsDTO() {
+        return appointmentRecordRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Получение записи по ID в виде DTO
+    public Optional<AppointmentRecordDTO> getRecordByIdAsDTO(Integer recordId) {
+        return appointmentRecordRepository.findById(recordId).map(this::convertToDTO);
+    }
+
+    public Optional<AppointmentRecord> getRecordById(Integer recordId) {
+        return appointmentRecordRepository.findById(recordId);
+    }
+
+    // Создание записи из DTO
+    public AppointmentRecord createRecordFromDTO(AppointmentRecordDTO dto) {
+        AppointmentRecord record = convertToEntity(dto);
         return appointmentRecordRepository.save(record);
     }
 
-    // Удаление записи
-    public void deleteRecord(Integer clientId, Integer recordId) {
-        AppointmentRecordId id = new AppointmentRecordId(clientId, recordId);
-        appointmentRecordRepository.deleteById(id);
-    }
+    // Обновление записи из DTO
+    public AppointmentRecord updateRecordFromDTO(Integer recordId, AppointmentRecordDTO updatedDto) {
+        AppointmentRecord existingRecord = appointmentRecordRepository.findById(recordId)
+                .orElseThrow(() -> new RuntimeException("Record not found with ID: " + recordId));
 
-    // Генерация уникального значения для recordId
-    private Integer generateRecordId() {
-        // Пример простой генерации (можно заменить на более сложную логику)
-        return (int) Math.round(Math.random() * 100000);
-    }
-
-    public AppointmentRecord updateAppointmentRecord(Integer clientId, Integer recordId, AppointmentRecord updatedRecord) {
-        // Находим существующую запись по составному ключу
-        AppointmentRecordId id = new AppointmentRecordId(clientId, recordId);
-        AppointmentRecord existingRecord = appointmentRecordRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Запись с ID " + id + " не найдена"));
-
-        // Обновляем поля записи
-        if (updatedRecord.getClient() != null) {
-            existingRecord.setClient(updatedRecord.getClient());
+        // Обновляем поля существующей записи
+        if (updatedDto.getClientId() != null) {
+            existingRecord.setClientById(updatedDto.getClientId(), clientRepository);
         }
-        if (updatedRecord.getDoctor() != null) {
-            existingRecord.setDoctor(updatedRecord.getDoctor());
+        if (updatedDto.getDoctorId() != null) {
+            existingRecord.setDoctorById(updatedDto.getDoctorId(), doctorRepository);
         }
-        if (updatedRecord.getAppointmentDate() != null) {
-            existingRecord.setAppointmentDate(updatedRecord.getAppointmentDate());
+        if (updatedDto.getAppointmentDate() != null) {
+            existingRecord.setAppointmentDate(updatedDto.getAppointmentDate());
         }
-        if (updatedRecord.getAppointmentTime() != null) {
-            existingRecord.setAppointmentTime(updatedRecord.getAppointmentTime());
+        if (updatedDto.getAppointmentTime() != null) {
+            existingRecord.setAppointmentTime(updatedDto.getAppointmentTime());
         }
-        if (updatedRecord.getServiceName() != null) {
-            existingRecord.setServiceName(updatedRecord.getServiceName());
+        if (updatedDto.getServiceName() != null) {
+            existingRecord.setServiceName(updatedDto.getServiceName());
         }
-        if (updatedRecord.getDiseaseHistory() != null) {
-            existingRecord.setDiseaseHistory(updatedRecord.getDiseaseHistory());
+        if (updatedDto.getDiseaseHistoryId() != null) {
+            existingRecord.setDiseaseHistoryById(Long.valueOf(updatedDto.getDiseaseHistoryId()), diseaseHistoryRepository);
         }
 
-        // Сохраняем обновленную запись
         return appointmentRecordRepository.save(existingRecord);
+    }
+
+    // Удаление записи
+    public void deleteRecord(Integer recordId) {
+        appointmentRecordRepository.deleteById(recordId);
     }
 }

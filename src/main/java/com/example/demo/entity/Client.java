@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.springframework.http.ResponseEntity;
 
@@ -10,6 +11,7 @@ import java.util.Optional;
 
 @Entity
 @Table(name = "clients")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Client {
 
     @Id
@@ -35,11 +37,12 @@ public class Client {
     @Column(name = "passport", nullable = false)
     private String passport;
 
-
+/*
     // Связь 1:1 с таблицей "История болезни"
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "disease_history_id", referencedColumnName = "record_id")
     private DiseaseHistory diseaseHistory;
+*/
 
     // Связь 1:N с таблицей "Результаты анализов"
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

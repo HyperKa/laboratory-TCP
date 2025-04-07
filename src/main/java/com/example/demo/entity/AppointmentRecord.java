@@ -3,33 +3,37 @@ package com.example.demo.entity;
 import com.example.demo.repository.ClientRepository;
 import com.example.demo.repository.DiseaseHistoryRepository;
 import com.example.demo.repository.DoctorRepository;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name="appointment_records")
+@Table(name = "appointment_records")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class AppointmentRecord {
-    @EmbeddedId
-    private AppointmentRecordId id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "record_id", nullable = false)
+    private Integer recordId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("clientId")
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
-    //private Long clientId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
+    @JsonBackReference // Дочерняя сторона, игнорируется при сериализации
     private Doctor doctor;
-    //private Long doctorId;
 
     @Column(name = "appointment_date", nullable = false)
     private LocalDate appointmentDate;
@@ -42,9 +46,11 @@ public class AppointmentRecord {
 
     // Связь 1:1 с таблицей "История болезни"
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+
+    //@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "disease_history_id", referencedColumnName = "record_id")
+    @JsonIgnore // Игнорируем это поле при сериализации
     private DiseaseHistory diseaseHistory;
-    //private Long diseaseHistoryId;
 
     // Метод для установки клиента по ID
     public void setClientById(Integer clientId, ClientRepository clientRepository) {
@@ -75,17 +81,16 @@ public class AppointmentRecord {
             this.diseaseHistory = null;
         }
     }
-    /*
-    public void setClientId(Long clientId) {
-        this.clientId = clientId;
+
+    public Integer getClientId() {
+        return client != null ? Math.toIntExact(client.getId()) : null;
     }
 
-    public void setDoctorId(Long doctorId) {
-        this.doctorId = doctorId;
+    public Integer getDoctorId() {
+        return doctor != null ? doctor.getId() : null;
     }
 
-    public void setDiseaseHistoryId(Long diseaseHistoryId) {
-        this.diseaseHistoryId = diseaseHistoryId;
+    public Integer getDiseaseHistoryId() {
+        return diseaseHistory != null ? diseaseHistory.getRecordId() : null;
     }
-    */
 }

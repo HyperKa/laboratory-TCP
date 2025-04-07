@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.DoctorDTO;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Doctor;
 import com.example.demo.repository.DoctorRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -99,5 +101,77 @@ public class DoctorService {
 
         // Сохраняем обновленного врача в базу данных
         return doctorRepository.save(existingDoctor);
+    }
+
+
+
+    // Преобразование Entity -> DTO
+    public DoctorDTO convertToDTO(Doctor doctor) {
+        return new DoctorDTO(doctor);
+    }
+
+    // Преобразование DTO -> Entity
+    public Doctor convertToEntity(DoctorDTO dto) {
+        Doctor doctor = new Doctor();
+        doctor.setId(dto.getId());                                  // Убрана сложная обработка получения ID доктора
+        doctor.setLastName(dto.getLastName());
+        doctor.setFirstName(dto.getFirstName());
+        doctor.setSpecialization(dto.getSpecialization());
+        doctor.setExperience(dto.getExperience());
+        doctor.setLogin(dto.getLogin());
+        // Пароль не устанавливается здесь, так как он может быть обработан отдельно
+        return doctor;
+    }
+
+    // Получение всех врачей в виде DTO
+    public List<DoctorDTO> getAllDoctorsAsDTO() {
+        return doctorRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Получение врача по ID в виде DTO
+    public Optional<DoctorDTO> getDoctorByIdAsDTO(Long id) {
+        return doctorRepository.findById(id).map(this::convertToDTO);
+    }
+
+    // Создание врача из DTO
+    public DoctorDTO createDoctorFromDTO(DoctorDTO dto) {
+        Doctor doctor = convertToEntity(dto);
+        if (dto.getPassword() == null || dto.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be null or empty");
+        }
+        doctor.setPassword(passwordEncoder.encode(dto.getPassword()));
+        Doctor savedDoctor = doctorRepository.save(doctor);
+        return convertToDTO(savedDoctor);
+    }
+
+    // Обновление врача из DTO
+    public DoctorDTO updateDoctorFromDTO(Long id, DoctorDTO updatedDto) {
+        Doctor existingDoctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with ID: " + id));
+
+        // Обновляем поля существующего врача
+        if (updatedDto.getLastName() != null) {
+            existingDoctor.setLastName(updatedDto.getLastName());
+        }
+        if (updatedDto.getFirstName() != null) {
+            existingDoctor.setFirstName(updatedDto.getFirstName());
+        }
+        if (updatedDto.getSpecialization() != null) {
+            existingDoctor.setSpecialization(updatedDto.getSpecialization());
+        }
+        if (updatedDto.getExperience() != null) {
+            existingDoctor.setExperience(updatedDto.getExperience());
+        }
+        if (updatedDto.getLogin() != null) {
+            existingDoctor.setLogin(updatedDto.getLogin());
+        }
+        if (updatedDto.getPassword() != null && !updatedDto.getPassword().isEmpty()) {
+            existingDoctor.setPassword(passwordEncoder.encode(updatedDto.getPassword()));
+        }
+
+        Doctor savedDoctor = doctorRepository.save(existingDoctor);
+        return convertToDTO(savedDoctor);
     }
 }

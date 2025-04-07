@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 */
 
+import com.example.demo.dto.ClientDTO;
 import com.example.demo.entity.Client;
 import com.example.demo.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,5 +80,62 @@ public class ClientService {
         existingClient.setPassport(updatedClient.getPassport());
 
         return clientRepository.save(existingClient);
+    }
+
+    // Преобразование Entity -> DTO
+    public ClientDTO convertToDTO(Client client) {
+        return new ClientDTO(client);
+    }
+
+    // Преобразование DTO -> Entity
+    public Client convertToEntity(ClientDTO dto) {
+        Client client = new Client();
+        //client.setId(Math.toIntExact(dto.getId()));
+        if (dto.getId() != null) {
+            client.setId(Math.toIntExact(dto.getId())); // Устанавливаем id только если оно не null
+        }
+        client.setAge(dto.getAge());
+        client.setGender(dto.getGender());
+        client.setLastName(dto.getLastName());
+        client.setFirstName(dto.getFirstName());
+        client.setAddress(dto.getAddress());
+        client.setPassport(dto.getPassport());
+        return client;
+    }
+
+    // Получение всех клиентов в виде DTO
+    public List<ClientDTO> getAllClientsAsDTO() {
+        return clientRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Получение клиента по ID в виде DTO
+    public Optional<ClientDTO> getClientByIdAsDTO(Long id) {
+        return clientRepository.findById(id).map(this::convertToDTO);
+    }
+
+    // Создание клиента из DTO
+    public ClientDTO createClientFromDTO(ClientDTO dto) {
+        Client client = convertToEntity(dto);
+        Client savedClient = clientRepository.save(client);
+        return convertToDTO(savedClient);
+    }
+
+    // Обновление клиента из DTO
+    public ClientDTO updateClientFromDTO(Long id, ClientDTO updatedDto) {
+        Client existingClient = clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Client not found with ID: " + id));
+
+        // Обновляем поля существующего клиента
+        existingClient.setAge(updatedDto.getAge());
+        existingClient.setGender(updatedDto.getGender());
+        existingClient.setLastName(updatedDto.getLastName());
+        existingClient.setFirstName(updatedDto.getFirstName());
+        existingClient.setAddress(updatedDto.getAddress());
+        existingClient.setPassport(updatedDto.getPassport());
+
+        Client savedClient = clientRepository.save(existingClient);
+        return convertToDTO(savedClient);
     }
 }

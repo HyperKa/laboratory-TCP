@@ -47,23 +47,28 @@ public class SecurityConfig {
                 */
                 .csrf(csrf -> csrf.disable()) // Отключаем CSRF для API
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/v1/doctors/**").permitAll() // Разрешить доступ к API врачей
-                        .requestMatchers("/api/v1/clients/**").permitAll()
-                        .requestMatchers("/api/v1/appointment-records/**").permitAll()
-                        .requestMatchers("/api/v1/disease-history/**").permitAll()
-                        .requestMatchers("/api/v1/analysis-results/**").permitAll()
-                    .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
-                )
+                    .requestMatchers(
+                            "/api/v1/**"
+//                            "/api/v1/doctors/**",
+//                            "/api/v1/clients/**",
+//                            "/api/v1/appointment-records/**",
+//                            "/api/v1/disease-history/**",
+//                            "/api/v1/analysis-results/**"
+                            ).permitAll().anyRequest().authenticated() // Разрешить доступ к API врачей
+                        //.requestMatchers("/api/v1/clients/**").permitAll()
+                        //.requestMatchers("/api/v1/appointment-records/**").permitAll()
+                        //.requestMatchers("/api/v1/disease-history/**").permitAll()
+                        //.requestMatchers("/api/v1/analysis-results/**").permitAll()
+                     // Все остальные запросы требуют аутентификации
+                    )
 
                 .formLogin(form -> form
                         .loginPage("/login") // Страница входа
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .permitAll()
-                );
-
-
+                        .permitAll());
+                //)
+                //.logout(logout -> logout
+                  //      .permitAll()
+                //);
                 /*
                 .authorizeHttpRequests(auth -> auth
                     .anyRequest().permitAll() // Разрешить доступ ко всем маршрутам

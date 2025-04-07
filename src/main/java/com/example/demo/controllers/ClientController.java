@@ -1,6 +1,6 @@
 package com.example.demo.controllers;
 
-import com.example.demo.entity.Client;
+import com.example.demo.dto.ClientDTO;
 import com.example.demo.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/clients")
@@ -19,26 +18,28 @@ public class ClientController {
 
     // CREATE
     @PostMapping
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(client));
+    public ResponseEntity<ClientDTO> createClient(@RequestBody ClientDTO clientDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClientFromDTO(clientDTO));
     }
 
     // READ (все записи)
     @GetMapping
-    public ResponseEntity<List<Client>> getAllClients() {
-        return ResponseEntity.ok(clientService.getAllClients());
+    public ResponseEntity<List<ClientDTO>> getAllClients() {
+        return ResponseEntity.ok(clientService.getAllClientsAsDTO());
     }
 
     // READ (по ID)
     @GetMapping("/{id}")
-    public ResponseEntity<Client> getClientById(@PathVariable Long id) {
-        return clientService.getClientById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id) {
+        return clientService.getClientByIdAsDTO(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<Client> updateClient(@PathVariable Long id, @RequestBody Client updatedClient) {
-        return ResponseEntity.ok(clientService.updateClient(id, updatedClient));
+    public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id, @RequestBody ClientDTO updatedClientDTO) {
+        return ResponseEntity.ok(clientService.updateClientFromDTO(id, updatedClientDTO));
     }
 
     // DELETE
@@ -47,5 +48,4 @@ public class ClientController {
         clientService.deleteClient(id);
         return ResponseEntity.noContent().build();
     }
-
 }

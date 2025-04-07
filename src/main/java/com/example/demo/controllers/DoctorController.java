@@ -1,6 +1,6 @@
 package com.example.demo.controllers;
 
-import com.example.demo.entity.Doctor;
+import com.example.demo.dto.DoctorDTO;
 import com.example.demo.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/doctors")
@@ -17,35 +16,36 @@ public class DoctorController {
     @Autowired
     private DoctorService doctorService;
 
-    // Создание врача
+    // CREATE
     @PostMapping
-    public ResponseEntity<Doctor> createDoctor(@RequestBody Doctor doctor) {
-        return new ResponseEntity<>(doctorService.saveDoctor(doctor), HttpStatus.CREATED);
+    public ResponseEntity<DoctorDTO> createDoctor(@RequestBody DoctorDTO doctorDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(doctorService.createDoctorFromDTO(doctorDTO));
     }
 
-    // Получение всех врачей
+    // READ (все записи)
     @GetMapping
-    public ResponseEntity<List<Doctor>> getAllDoctors() {
-        return new ResponseEntity<>(doctorService.getAllDoctors(), HttpStatus.OK);
+    public ResponseEntity<List<DoctorDTO>> getAllDoctors() {
+        return ResponseEntity.ok(doctorService.getAllDoctorsAsDTO());
     }
 
-    // Получение врача по ID
+    // READ (по ID)
     @GetMapping("/{id}")
-    public ResponseEntity<Doctor> getDoctorById(@PathVariable Long id) {
-        Optional<Doctor> doctor = Optional.ofNullable(doctorService.getDoctorById(id));
-        return doctor.map(d -> new ResponseEntity<>(d, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<DoctorDTO> getDoctorById(@PathVariable Long id) {
+        return doctorService.getDoctorByIdAsDTO(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<Doctor> updateDoctor(@PathVariable Long id, @RequestBody Doctor updatedDoctor) {
-        Doctor doctor = doctorService.updateDoctor(id, updatedDoctor);
-        return new ResponseEntity<>(doctor, HttpStatus.OK);
+    public ResponseEntity<DoctorDTO> updateDoctor(@PathVariable Long id, @RequestBody DoctorDTO updatedDoctorDTO) {
+        return ResponseEntity.ok(doctorService.updateDoctorFromDTO(id, updatedDoctorDTO));
     }
 
+    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
         doctorService.deleteDoctor(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 }
