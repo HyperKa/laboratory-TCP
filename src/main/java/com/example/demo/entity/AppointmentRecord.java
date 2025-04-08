@@ -45,7 +45,7 @@ public class AppointmentRecord {
     private String serviceName;
 
     // Связь 1:1 с таблицей "История болезни"
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY) // cascade = CascadeType.ALL
 
     //@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "disease_history_id", referencedColumnName = "record_id")
@@ -93,4 +93,5 @@ public class AppointmentRecord {
     public Integer getDiseaseHistoryId() {
         return diseaseHistory != null ? diseaseHistory.getRecordId() : null;
     }
+
 }

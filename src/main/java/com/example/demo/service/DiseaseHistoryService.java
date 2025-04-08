@@ -19,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -37,9 +39,6 @@ public class DiseaseHistoryService {
     @Autowired
     private AppointmentRecordRepository appointmentRecordRepository;
 
-    @Autowired
-    private AppointmentRecordService appointmentRecordService;
-
     // Получение всех записей истории болезни
     public Iterable<DiseaseHistory> getAllRecords() {
         return diseaseHistoryRepository.findAll();
@@ -50,27 +49,9 @@ public class DiseaseHistoryService {
         return diseaseHistoryRepository.findById(recordId);
     }
 
-    /*
+    // Создание новой записи истории болезни
     public DiseaseHistory createRecord(DiseaseHistoryDTO dto) {
-        // Находим врача по ID
-        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
-                .orElseThrow(() -> new RuntimeException("Врач с ID " + dto.getDoctorId() + " не найден"));
-
-        // Преобразуем DTO в Entity
-        DiseaseHistory history = convertToEntity(dto);
-        history.setDoctor(doctor);
-
-        // Сохраняем запись
-        return diseaseHistoryRepository.save(history);
-    }
-    */
-    private static final Logger logger = LoggerFactory.getLogger(DiseaseHistoryService.class);
-
-    public DiseaseHistory createRecord(DiseaseHistoryDTO dto) {
-
-        logger.info("Creating DiseaseHistory record with doctorId: {}", dto.getDoctorId());
-
-        // Находим врача по ID
+    // Находим врача по ID
         Doctor doctor = doctorRepository.findById(dto.getDoctorId())
                 .orElseThrow(() -> new RuntimeException("Врач с ID " + dto.getDoctorId() + " не найден"));
 
@@ -80,36 +61,33 @@ public class DiseaseHistoryService {
 
         // Устанавливаем клиента
         if (dto.getClientId() != null) {
-            Client client = clientRepository.findById(Long.valueOf(dto.getClientId()))
-                    .orElseThrow(() -> new RuntimeException("Клиент с ID " + dto.getClientId() + " не найден"));
-            //history.setClient(client);
-            history.setClientId(client.getId());
+            history.setClientId(dto.getClientId());
         }
 
-        // Если appointmentRecordId указан, загружаем существующую запись
-        if (dto.getAppointmentRecordId() != null) {
-            AppointmentRecordDTO appointmentRecordDTO = appointmentRecordService.getRecordByIdAsDTO(dto.getAppointmentRecordId())
-                    .orElseThrow(() -> new RuntimeException("Запись на прием с ID " + dto.getAppointmentRecordId() + " не найдена"));
+        // Если appointmentRecordIds указаны, загружаем существующие записи
+        if (dto.getAppointmentRecordIds() != null && !dto.getAppointmentRecordIds().isEmpty()) {
+            List<AppointmentRecord> appointmentRecords = dto.getAppointmentRecordIds().stream()
+                    .map(id -> appointmentRecordRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Запись на прием с ID " + id + " не найдена")))
+                    .collect(Collectors.toList());
 
-            // Преобразуем DTO обратно в Entity
-            AppointmentRecord appointmentRecord = appointmentRecordService.convertToEntity(appointmentRecordDTO);
-            history.setAppointmentRecord(appointmentRecord);
-            appointmentRecord.setDiseaseHistory(history); // Устанавливаем обратную связь
+            // Устанавливаем обратную связь
+            appointmentRecords.forEach(record -> record.setDiseaseHistory(history));
+            history.setAppointmentRecords(appointmentRecords);
         } else {
-            // Если appointmentRecordId не указан, создаем новую запись в appointment_records
-            AppointmentRecordDTO appointmentRecordDTO = new AppointmentRecordDTO();
-            appointmentRecordDTO.setClientId(dto.getClientId());
-            appointmentRecordDTO.setDoctorId(dto.getDoctorId());
-            // appointmentRecordDTO.setAppointmentDate(LocalDateTime.now().toLocalDate());
-            // appointmentRecordDTO.setAppointmentTime(LocalDateTime.now().toLocalTime());
-            // appointmentRecordDTO.setServiceName("Initial appointment");
-            appointmentRecordDTO.setAppointmentDate(dto.getAppointmentDate() != null ? dto.getAppointmentDate() : LocalDate.now());
-            appointmentRecordDTO.setAppointmentTime(dto.getAppointmentTime() != null ? dto.getAppointmentTime() : LocalTime.now());
-            appointmentRecordDTO.setServiceName(dto.getServiceName() != null ? dto.getServiceName() : "Initial appointment");
+            // Если appointmentRecordIds не указаны, создаем новую запись в appointment_records
+            AppointmentRecord newAppointmentRecord = new AppointmentRecord();
+            newAppointmentRecord.setClientById(dto.getClientId(), clientRepository);
+            newAppointmentRecord.setDoctorById(dto.getDoctorId(), doctorRepository);
+            newAppointmentRecord.setAppointmentDate(dto.getAppointmentDate() != null ? dto.getAppointmentDate() : LocalDate.now());
+            newAppointmentRecord.setAppointmentTime(dto.getAppointmentTime() != null ? dto.getAppointmentTime() : LocalTime.now());
+            newAppointmentRecord.setServiceName(dto.getServiceName() != null ? dto.getServiceName() : "Initial appointment");
 
-            AppointmentRecord newAppointmentRecord = appointmentRecordService.createRecordFromDTO(appointmentRecordDTO);
-            history.setAppointmentRecord(newAppointmentRecord);
-            newAppointmentRecord.setDiseaseHistory(history); // Устанавливаем обратную связь
+            // Устанавливаем обратную связь
+            newAppointmentRecord.setDiseaseHistory(history);
+
+            // Добавляем новую запись в список appointmentRecords
+            history.setAppointmentRecords(List.of(newAppointmentRecord));
         }
 
         // Сохраняем запись
@@ -135,7 +113,18 @@ public class DiseaseHistoryService {
         history.setEndDate(dto.getEndDate());
         history.setDisease(dto.getDisease());
         history.setClientId(dto.getClientId());
-        history.setAppointmentRecordId(dto.getAppointmentRecordId());
+
+        // Обновляем связанные записи на прием
+        if (dto.getAppointmentRecordIds() != null && !dto.getAppointmentRecordIds().isEmpty()) {
+            List<AppointmentRecord> appointmentRecords = dto.getAppointmentRecordIds().stream()
+                    .map(id -> appointmentRecordRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Запись на прием с ID " + id + " не найдена")))
+                    .collect(Collectors.toList());
+
+            // Устанавливаем обратную связь
+            appointmentRecords.forEach(record -> record.setDiseaseHistory(history));
+            history.setAppointmentRecords(appointmentRecords);
+        }
 
         // Сохраняем изменения
         return diseaseHistoryRepository.save(history);
@@ -146,19 +135,23 @@ public class DiseaseHistoryService {
         diseaseHistoryRepository.deleteById(recordId);
     }
 
-    // Преобразование Entity -> DTO
-    /*
+    // Преобразование DTO -> Entity
+    public DiseaseHistory convertToEntity(DiseaseHistoryDTO dto) {
+        DiseaseHistory history = new DiseaseHistory();
+        history.setDoctorId(dto.getDoctorId());
+        history.setClientId(dto.getClientId());
+        history.setFirstNameDoctor(dto.getFirstNameDoctor());
+        history.setLastNameDoctor(dto.getLastNameDoctor());
+        history.setProfession(dto.getProfession());
+        history.setStartDate(dto.getStartDate());
+        history.setEndDate(dto.getEndDate());
+        history.setDisease(dto.getDisease());
+        return history;
+    }
     public DiseaseHistoryDTO convertToDTO(DiseaseHistory history) {
         DiseaseHistoryDTO dto = new DiseaseHistoryDTO();
-        //dto.setRecordId(history.getRecordId());
-        dto.setDoctorId(Long.valueOf(history.getDoctorId()));
-
-        if (history.getDoctorId() != null) {
-            Doctor doctor = doctorRepository.findById(dto.getDoctorId())
-                    .orElseThrow(() -> new RuntimeException("Doctor not found with ID: " + dto.getDoctorId()));
-        } else {
-            throw new RuntimeException("doctorId cannot be null");
-        }
+        dto.setRecordId(history.getRecordId());
+        dto.setDoctorId(history.getDoctorId());
         dto.setFirstNameDoctor(history.getFirstNameDoctor());
         dto.setLastNameDoctor(history.getLastNameDoctor());
         dto.setProfession(history.getProfession());
@@ -166,36 +159,14 @@ public class DiseaseHistoryService {
         dto.setEndDate(history.getEndDate());
         dto.setDisease(history.getDisease());
         dto.setClientId(history.getClientId());
-        dto.setAppointmentRecordId(history.getAppointmentRecordId());
+
+        // Преобразуем список AppointmentRecord в список AppointmentRecordDTO
+        if (history.getAppointmentRecords() != null) {
+            dto.setAppointmentRecords(history.getAppointmentRecords().stream()
+                    .map(AppointmentRecordDTO::new)
+                    .collect(Collectors.toList()));
+        }
+
         return dto;
-    }
-    */
-
-    public DiseaseHistoryDTO convertToDTO(DiseaseHistory history) {
-        return new DiseaseHistoryDTO(history); // Используем конструктор с параметрами
-    }
-
-    public DiseaseHistory convertToEntity(DiseaseHistoryDTO dto) {
-        DiseaseHistory diseaseHistory = new DiseaseHistory();
-
-        diseaseHistory.setDoctorId(dto.getDoctorId());
-        //diseaseHistory.setClientId(dto.getClientId());
-        diseaseHistory.setAppointmentRecordId(dto.getAppointmentRecordId());
-        if (dto.getClientId() != null) {
-            diseaseHistory.setClientId(dto.getClientId());
-        }
-        else {
-            System.out.println("Запись не вывелась, типо Id = 0");
-        }
-
-        // Устанавливаем остальные поля
-        diseaseHistory.setFirstNameDoctor(dto.getFirstNameDoctor());
-        diseaseHistory.setLastNameDoctor(dto.getLastNameDoctor());
-        diseaseHistory.setProfession(dto.getProfession());
-        diseaseHistory.setStartDate(dto.getStartDate());
-        diseaseHistory.setEndDate(dto.getEndDate());
-        diseaseHistory.setDisease(dto.getDisease());
-
-        return diseaseHistory;
-    }
+}
 }

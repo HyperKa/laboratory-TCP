@@ -44,6 +44,7 @@ public class AppointmentRecordService {
     // Преобразование DTO -> Entity
     public AppointmentRecord convertToEntity(AppointmentRecordDTO dto) {
         AppointmentRecord record = new AppointmentRecord();
+
         // Загружаем клиента по clientId
         if (dto.getClientId() != null) {
             Client client = clientRepository.findById(Long.valueOf(dto.getClientId()))
@@ -72,6 +73,9 @@ public class AppointmentRecordService {
             DiseaseHistory diseaseHistory = diseaseHistoryRepository.findById(dto.getDiseaseHistoryId())
                     .orElseThrow(() -> new RuntimeException("DiseaseHistory not found with ID: " + dto.getDiseaseHistoryId()));
             record.setDiseaseHistory(diseaseHistory);
+
+            // Добавляем запись в список appointmentRecords истории болезни
+            diseaseHistory.getAppointmentRecords().add(record);
         }
 
         return record;
@@ -89,6 +93,7 @@ public class AppointmentRecordService {
         return appointmentRecordRepository.findById(recordId).map(this::convertToDTO);
     }
 
+    // Получение записи по ID
     public Optional<AppointmentRecord> getRecordById(Integer recordId) {
         return appointmentRecordRepository.findById(recordId);
     }
@@ -121,7 +126,12 @@ public class AppointmentRecordService {
             existingRecord.setServiceName(updatedDto.getServiceName());
         }
         if (updatedDto.getDiseaseHistoryId() != null) {
-            existingRecord.setDiseaseHistoryById(Long.valueOf(updatedDto.getDiseaseHistoryId()), diseaseHistoryRepository);
+            DiseaseHistory diseaseHistory = diseaseHistoryRepository.findById(updatedDto.getDiseaseHistoryId())
+                    .orElseThrow(() -> new RuntimeException("DiseaseHistory not found with ID: " + updatedDto.getDiseaseHistoryId()));
+
+            // Обновляем связь с историей болезни
+            existingRecord.setDiseaseHistory(diseaseHistory);
+            diseaseHistory.getAppointmentRecords().add(existingRecord);
         }
 
         return appointmentRecordRepository.save(existingRecord);
@@ -129,6 +139,27 @@ public class AppointmentRecordService {
 
     // Удаление записи
     public void deleteRecord(Integer recordId) {
+        AppointmentRecord record = appointmentRecordRepository.findById(recordId)
+                .orElseThrow(() -> new RuntimeException("Record not found with ID: " + recordId));
+
+        // Удаляем запись из списка appointmentRecords истории болезни
+        if (record.getDiseaseHistory() != null) {
+            DiseaseHistory diseaseHistory = record.getDiseaseHistory();
+            diseaseHistory.getAppointmentRecords().remove(record); // Удаляем запись из списка
+            record.setDiseaseHistory(null); // Обнуляем ссылку на историю болезни
+            diseaseHistoryRepository.save(diseaseHistory); // Сохраняем изменения
+        }
+
         appointmentRecordRepository.deleteById(recordId);
+    }
+
+    // Получение всех записей на прием для конкретной истории болезни
+    public List<AppointmentRecordDTO> getRecordsByDiseaseHistoryId(Integer diseaseHistoryId) {
+        DiseaseHistory diseaseHistory = diseaseHistoryRepository.findById(diseaseHistoryId)
+                .orElseThrow(() -> new RuntimeException("DiseaseHistory not found with ID: " + diseaseHistoryId));
+
+        return diseaseHistory.getAppointmentRecords().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }
