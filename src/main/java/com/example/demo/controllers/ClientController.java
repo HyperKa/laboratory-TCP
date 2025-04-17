@@ -1,13 +1,18 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.ClientDTO;
+import com.example.demo.entity.Client;
 import com.example.demo.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/clients")
@@ -28,9 +33,27 @@ public class ClientController {
         return ResponseEntity.ok(clientService.getAllClientsAsDTO());
     }
 
+    /*
     // READ (по ID)
     @GetMapping("/{id}")
     public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id) {
+        return clientService.getClientByIdAsDTO(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    */
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id, Authentication auth) {
+        UserDetails user = (UserDetails) auth.getPrincipal();
+
+        if (user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
+            Optional<Client> current = clientService.findByLogin(user.getUsername());
+            if (current.isEmpty() || !Long.valueOf(current.get().getId()).equals(id)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
         return clientService.getClientByIdAsDTO(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

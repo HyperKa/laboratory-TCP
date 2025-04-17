@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.DoctorDTO;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Doctor;
+import com.example.demo.entity.Role;
 import com.example.demo.repository.DoctorRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,6 +120,9 @@ public class DoctorService {
         doctor.setSpecialization(dto.getSpecialization());
         doctor.setExperience(dto.getExperience());
         doctor.setLogin(dto.getLogin());
+
+        dto.setPassword(doctor.getPassword());
+        dto.setRole(dto.getRole());
         // Пароль не устанавливается здесь, так как он может быть обработан отдельно
         return doctor;
     }
@@ -142,6 +146,7 @@ public class DoctorService {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
         doctor.setPassword(passwordEncoder.encode(dto.getPassword()));
+        doctor.setRole(Role.DOCTOR); // Автоматическая установка роли
         Doctor savedDoctor = doctorRepository.save(doctor);
         return convertToDTO(savedDoctor);
     }

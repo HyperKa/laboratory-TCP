@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import com.example.demo.entity.Client;
+import com.example.demo.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,11 @@ public class ClientDTO {
     private String address;
     private String passport;
 
+    // Новые поля
+    private String login;
+    private String password;
+    private Role role; // или Role (если используете Enum)
+
     // Конструктор для преобразования из Entity в DTO
     public ClientDTO(Client client) {
         this.id = (long) client.getId();
@@ -29,5 +35,8 @@ public class ClientDTO {
         this.firstName = client.getFirstName();
         this.address = client.getAddress();
         this.passport = client.getPassport();
+        this.login = client.getLogin();
+        this.password = client.getPassword();
+        this.role = client.getRole();
     }
 }

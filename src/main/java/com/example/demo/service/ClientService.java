@@ -12,8 +12,10 @@ import java.util.stream.Collectors;
 
 import com.example.demo.dto.ClientDTO;
 import com.example.demo.entity.Client;
+import com.example.demo.entity.Role;
 import com.example.demo.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -26,6 +28,9 @@ public class ClientService {
 
     @Autowired
     private ClientRepository clientRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder; // Добавляем PasswordEncoder
 
     public List<Client> getAllClients() {
         return clientRepository.findAll();
@@ -100,6 +105,10 @@ public class ClientService {
         client.setFirstName(dto.getFirstName());
         client.setAddress(dto.getAddress());
         client.setPassport(dto.getPassport());
+
+        client.setLogin(dto.getLogin());
+        client.setPassword(passwordEncoder.encode(dto.getPassword())); // Хэшируем пароль
+        client.setRole(dto.getRole()); // Преобразуем строку в Enum
         return client;
     }
 
@@ -118,6 +127,7 @@ public class ClientService {
     // Создание клиента из DTO
     public ClientDTO createClientFromDTO(ClientDTO dto) {
         Client client = convertToEntity(dto);
+        client.setRole(Role.CLIENT); // Автоматическая установка роли
         Client savedClient = clientRepository.save(client);
         return convertToDTO(savedClient);
     }
@@ -138,4 +148,9 @@ public class ClientService {
         Client savedClient = clientRepository.save(existingClient);
         return convertToDTO(savedClient);
     }
+
+    public Optional<Client> findByLogin(String login) {
+        return clientRepository.findByLogin(login);
+    }
+
 }

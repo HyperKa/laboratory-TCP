@@ -3,16 +3,17 @@ package com.example.demo.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Entity
 @Table(name = "clients")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Client {
+public class Client implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +37,16 @@ public class Client {
 
     @Column(name = "passport", nullable = false)
     private String passport;
+
+    @Column(name = "login", nullable = false, unique = true)
+    private String login;
+
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
 
 /*
     // Связь 1:1 с таблицей "История болезни"
@@ -128,6 +139,22 @@ public class Client {
         this.passport = passport;
     }
 
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
     @Override
     public String toString() {
         return "Client{" +
@@ -139,6 +166,45 @@ public class Client {
                 ", address='" + address + '\'' +
                 ", passport='" + passport + '\'' +
                 '}';
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getUsername() {
+        return login;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // Учетная запись всегда активна
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // Учетная запись не заблокирована
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // Срок действия пароля не истек
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // Учетная запись включена
     }
 
 }

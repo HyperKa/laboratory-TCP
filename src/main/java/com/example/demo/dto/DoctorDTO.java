@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import com.example.demo.entity.Doctor;
+import com.example.demo.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ public class DoctorDTO {
     private String experience;
     private String login;
     private String password;
+    private Role role; // или Role (если используете Enum)
 
     // Конструктор для преобразования из Entity в DTO
     public DoctorDTO(Doctor doctor) {
@@ -26,5 +28,7 @@ public class DoctorDTO {
         this.specialization = doctor.getSpecialization();
         this.experience = doctor.getExperience();
         this.login = doctor.getLogin();
+        this.password = doctor.getPassword();
+        this.role = doctor.getRole();
     }
 }

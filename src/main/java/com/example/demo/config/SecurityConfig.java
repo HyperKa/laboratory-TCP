@@ -1,79 +1,72 @@
 package com.example.demo.config;
 
 
-import jakarta.servlet.http.HttpServletResponse;
+import com.example.demo.service.UserDetailsServiceImpl;
+import com.example.demo.security.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
 
-                /*
-                .csrf(csrf -> csrf
-                    .ignoringRequestMatchers("/api/v1/doctors/**") // Отключаем CSRF для API
-                        .ignoringRequestMatchers("/api/v1/clients/**")
-                        .ignoringRequestMatchers("/api/v1/appointment_records/**")
-                        .ignoringRequestMatchers("/api/v1/disease-history/**")
-                        //analysis-results
-                        .ignoringRequestMatchers("/api/v1/analysis-results/**")
-                )
-                .authorizeHttpRequests(auth -> auth
-                        //.requestMatchers("/public/**").permitAll() // Разрешить доступ без аутентификации
-                        .requestMatchers("/api/v1/doctors/**").permitAll() // Разрешить доступ к API врачей
-                        .requestMatchers("/api/v1/clients/**").permitAll()
-                        .requestMatchers("/api/v1/appointment_records/**").permitAll()
-                        .requestMatchers("/api/v1/disease-history/**").permitAll()
-                        .requestMatchers("/api/v1/analysis-results/**").permitAll()
-                        .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
-                )
-
-                */
-                /*
-                .exceptionHandling(ex -> ex
-                    .authenticationEntryPoint((request, response, authException) -> {
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                    })
-                )
-                */
                 .csrf(csrf -> csrf.disable()) // Отключаем CSRF для API
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(
-                            "/api/v1/**"
-//                            "/api/v1/doctors/**",
-//                            "/api/v1/clients/**",
-//                            "/api/v1/appointment-records/**",
-//                            "/api/v1/disease-history/**",
-//                            "/api/v1/analysis-results/**"
-                            ).permitAll().anyRequest().authenticated() // Разрешить доступ к API врачей
-                        //.requestMatchers("/api/v1/clients/**").permitAll()
-                        //.requestMatchers("/api/v1/appointment-records/**").permitAll()
-                        //.requestMatchers("/api/v1/disease-history/**").permitAll()
-                        //.requestMatchers("/api/v1/analysis-results/**").permitAll()
-                     // Все остальные запросы требуют аутентификации
-                    )
 
-                .formLogin(form -> form
-                        .loginPage("/login") // Страница входа
-                        .permitAll());
-                //)
-                //.logout(logout -> logout
-                  //      .permitAll()
-                //);
-                /*
+
                 .authorizeHttpRequests(auth -> auth
-                    .anyRequest().permitAll() // Разрешить доступ ко всем маршрутам
-                );
-                */
+                        .requestMatchers("/auth/login/**").permitAll()
+
+                        .requestMatchers("/auth/register/client").permitAll()
+                        .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа
+
+                        // Доктора может регать только админ
+                        .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
+
+                        // CLIENT
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/analysis_results/{id}").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/appointment_records/{id}").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/disease_history/{id}").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/{id}").hasRole("CLIENT")
+
+                        // DOCTOR: доступ ко всем, кроме doctors (только GET)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasRole("DOCTOR")
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/doctors/**").denyAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/doctors/**").denyAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/**").denyAll()
+
+                        // ADMIN: полный доступ
+                        .requestMatchers("/api/v1/**").hasRole("ADMIN")
+
+                    .anyRequest().authenticated()
+                )
+
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Без состояния
 
         return http.build();
     }
@@ -81,5 +74,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(); // Используем BCrypt для хеширования паролей
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 }
