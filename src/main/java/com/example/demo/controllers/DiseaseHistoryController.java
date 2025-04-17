@@ -1,9 +1,12 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.AppointmentRecordDTO;
 import com.example.demo.dto.DiseaseHistoryDTO;
+import com.example.demo.entity.AppointmentRecord;
 import com.example.demo.entity.DiseaseHistory;
 import com.example.demo.service.DiseaseHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,9 +40,9 @@ public class DiseaseHistoryController {
     */
 
     @PostMapping
-    public ResponseEntity<DiseaseHistory> createDiseaseHistory(@RequestBody DiseaseHistoryDTO request) {
-        DiseaseHistory createdRecord = diseaseHistoryService.createRecord(request);
-        return ResponseEntity.status(201).body(createdRecord);
+    public ResponseEntity<DiseaseHistoryDTO> createDiseaseHistory(@RequestBody DiseaseHistoryDTO dto) {
+        DiseaseHistory createdRecord = diseaseHistoryService.createDiseaseHistoryFromDTO(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(diseaseHistoryService.convertToDTO(createdRecord));
     }
     // READ: Получение всех историй болезни
     @GetMapping

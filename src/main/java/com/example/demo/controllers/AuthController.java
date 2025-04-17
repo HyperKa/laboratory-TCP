@@ -33,7 +33,8 @@ public class AuthController {
     @Autowired private AdminRepository adminRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
-    // 🔐 Авторизация (общая)
+
+       // 🔐 Авторизация (общая)
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         authenticationManager.authenticate(
@@ -47,6 +48,7 @@ public class AuthController {
         String token = jwtTokenService.generateToken(userDetails);
         return ResponseEntity.ok(new JwtResponse(token));
     }
+
 
     // 📝 Регистрация клиента
     @PostMapping("/register/client")

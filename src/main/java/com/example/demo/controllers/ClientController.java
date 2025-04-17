@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.ChangePasswordRequest;
 import com.example.demo.dto.ClientDTO;
 import com.example.demo.entity.Client;
 import com.example.demo.service.ClientService;
@@ -71,4 +72,21 @@ public class ClientController {
         clientService.deleteClient(id);
         return ResponseEntity.noContent().build();
     }
+/*
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<Void> changePassword(
+            @PathVariable Long id,
+            @RequestBody ChangePasswordRequest request,
+            Authentication auth) {
+
+        UserDetails user = (UserDetails) auth.getPrincipal();
+        if (!user.getUsername().equals(clientService.getClientById(id).getLogin())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        clientService.changePassword(id, request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
+
+ */
 }

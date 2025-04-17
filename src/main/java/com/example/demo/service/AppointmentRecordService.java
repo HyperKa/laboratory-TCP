@@ -104,6 +104,7 @@ public class AppointmentRecordService {
         return appointmentRecordRepository.save(record);
     }
 
+
     // Обновление записи из DTO
     public AppointmentRecord updateRecordFromDTO(Integer recordId, AppointmentRecordDTO updatedDto) {
         AppointmentRecord existingRecord = appointmentRecordRepository.findById(recordId)

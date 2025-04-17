@@ -13,6 +13,7 @@ import com.example.demo.repository.DoctorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.ExpressionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,37 @@ public class DiseaseHistoryService {
     // Получение записи по ID
     public Optional<DiseaseHistory> getRecordById(int recordId) {
         return diseaseHistoryRepository.findById(recordId);
+    }
+
+    // Создание записи истории болезни из DTO
+    public DiseaseHistory createDiseaseHistoryFromDTO(DiseaseHistoryDTO dto) {
+        // Находим врача по ID
+        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+                .orElseThrow(() -> new RuntimeException("Врач с ID " + dto.getDoctorId() + " не найден"));
+
+        // Преобразуем DTO в Entity
+        DiseaseHistory history = convertToEntity(dto);
+        history.setDoctor(doctor);
+
+        // Устанавливаем клиента
+        if (dto.getClientId() != null) {
+            history.setClientId(dto.getClientId());
+        }
+
+        // Обрабатываем связанные записи на прием
+        if (dto.getAppointmentRecordIds() != null && !dto.getAppointmentRecordIds().isEmpty()) {
+            List<AppointmentRecord> appointmentRecords = dto.getAppointmentRecordIds().stream()
+                    .map(id -> appointmentRecordRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Запись на прием с ID " + id + " не найдена")))
+                    .collect(Collectors.toList());
+
+            // Устанавливаем обратную связь
+            appointmentRecords.forEach(record -> record.setDiseaseHistory(history));
+            history.setAppointmentRecords(appointmentRecords);
+        }
+
+        // Сохраняем запись
+        return diseaseHistoryRepository.save(history);
     }
 
     // Создание новой записи истории болезни

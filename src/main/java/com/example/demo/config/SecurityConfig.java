@@ -37,7 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login/**").permitAll()
 
                         .requestMatchers("/auth/register/client").permitAll()
-                        .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа
+                        //    .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа
 
                         // Доктора может регать только админ
                         .requestMatchers("/auth/register/doctor").hasRole("ADMIN")

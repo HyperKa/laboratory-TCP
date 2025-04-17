@@ -86,6 +86,28 @@ public class ClientService {
 
         return clientRepository.save(existingClient);
     }
+    /*
+    //для смены пароля
+
+    public void changePassword(Long clientId, String currentPassword, String newPassword) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+
+        // Проверяем, что текущий пароль верный
+        if (!passwordEncoder.matches(currentPassword, client.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Шифруем новый пароль
+        String encryptedPassword = passwordEncoder.encode(newPassword);
+        client.setPassword(encryptedPassword);
+
+        // Сохраняем обновленные данные
+        clientRepository.save(client);
+    }
+
+
+     */
 
     // Преобразование Entity -> DTO
     public ClientDTO convertToDTO(Client client) {
