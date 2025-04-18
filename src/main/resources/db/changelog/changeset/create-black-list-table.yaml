@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-revoked-tokens-table
+      author: your-name
+      changes:
+        - createTable:
+            tableName: revoked_tokens
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: token
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: revoked_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false

@@ -22,3 +22,5 @@ databaseChangeLog:
       file: db/changelog/changeset/create-analysisresult-table.yaml
   - include:
       file: db/changelog/changeset/create-appointmentrecord-table.yaml
+  - include:
+      file: db/changelog/changeset/create-black-list-table.yaml

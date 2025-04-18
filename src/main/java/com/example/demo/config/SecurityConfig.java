@@ -35,6 +35,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login/**").permitAll()
+                        .requestMatchers("/api/v1/clients/{id}/logout").permitAll()
+                        .requestMatchers("/api/v1/doctors/{id}/logout").permitAll()
 
                         .requestMatchers("/auth/register/client").permitAll()
                         //    .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа

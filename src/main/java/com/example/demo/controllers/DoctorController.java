@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.DoctorDTO;
+import com.example.demo.service.BlacklistedTokenService;
 import com.example.demo.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,10 @@ public class DoctorController {
 
     @Autowired
     private DoctorService doctorService;
+    @Autowired
+    private com.example.demo.service.BlacklistedTokenService BlacklistedTokenService; // Внедрение сервиса
+
+
 
     // CREATE
     @PostMapping
@@ -35,6 +40,7 @@ public class DoctorController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+    
 
     // UPDATE
     @PutMapping("/{id}")
@@ -47,5 +53,20 @@ public class DoctorController {
     public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
         doctorService.deleteDoctor(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Токен не предоставлен");
+        }
+
+        // Извлекаем токен из заголовка
+        String token = authHeader.substring(7); // Убираем "Bearer " из заголовка
+
+        // Добавляем токен в черный список через внедренный сервис
+        BlacklistedTokenService.addToBlacklist(token);
+
+        return ResponseEntity.ok("Выход выполнен успешно");
     }
 }

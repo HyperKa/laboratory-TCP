@@ -1,5 +1,6 @@
 package com.example.demo.security;
 
+import com.example.demo.service.BlacklistedTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private BlacklistedTokenService blacklistedTokenService; // Добавляем сервис для работы с черным списком
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -34,20 +38,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.out.println("Token found: " + token);
         }
 
-        if (token != null && jwtTokenService.validateToken(token)) {
-            String username = jwtTokenService.extractUsername(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        try {
+            // Проверяем, находится ли токен в черном списке
+            if (token != null && blacklistedTokenService.isTokenBlacklisted(token)) {
+                System.out.println("Token is blacklisted");
+                throw new SecurityException("Token has been revoked");
+            }
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
-        else {
-            // Добавьте логирование для ошибок валидации токена
-            System.out.println("Invalid or expired token");
+            // Валидируем токен
+            if (token != null && jwtTokenService.validateToken(token)) {
+                String username = jwtTokenService.extractUsername(token);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                System.out.println("Invalid or expired token");
+            }
+        } catch (SecurityException e) {
+            // Логируем ошибку и отправляем ответ клиенту
+            System.out.println(e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Unauthorized: " + e.getMessage());
+            return;
         }
 
         filterChain.doFilter(request, response);
