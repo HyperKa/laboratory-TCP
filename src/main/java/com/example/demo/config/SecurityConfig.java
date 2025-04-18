@@ -34,33 +34,37 @@ public class SecurityConfig {
 
 
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers("/auth/login/**").permitAll()
-
                         .requestMatchers("/auth/register/client").permitAll()
-                        //    .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа
+                        .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа
 
                         // Доктора может регать только админ
                         .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
 
-                        // CLIENT
+                        // РОЛЬ КЛИЕНТА: доступ только к своим записям (GET)
                         .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/v1/analysis_results/{id}").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/v1/appointment_records/{id}").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/v1/disease_history/{id}").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/v1/doctors/{id}").hasRole("CLIENT")
 
-                        // DOCTOR: доступ ко всем, кроме doctors (только GET)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole("DOCTOR")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/**").hasRole("DOCTOR")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasRole("DOCTOR")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasRole("DOCTOR")
+                        // РОЛЬ ДОКТОРА: доступ ко всем таблицам, но не может изменять свою таблицу
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
+                        .requestMatchers(HttpMethod.POST, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
 
+                        // ОГРАНИЧЕНИЕ ДЛЯ ДОКТОРОВ: не могут создавать/редактировать/удалять записи в своей таблице
                         .requestMatchers(HttpMethod.POST, "/api/v1/doctors/**").denyAll()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/doctors/**").denyAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/**").denyAll()
 
-                        // ADMIN: полный доступ
-                        .requestMatchers("/api/v1/**").hasRole("ADMIN")
+                        // РОЛЬ АДМИНА: полный доступ ко всем таблицам
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasRole("ADMIN")
 
                     .anyRequest().authenticated()
                 )
@@ -71,10 +75,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /*
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(); // Используем BCrypt для хеширования паролей
     }
+
+     */
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

@@ -1,9 +1,6 @@
 package com.example.demo.controllers;
 
-import com.example.demo.dto.ClientDTO;
-import com.example.demo.dto.DoctorDTO;
-import com.example.demo.dto.JwtResponse;
-import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.*;
 import com.example.demo.entity.Admin;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Doctor;
@@ -12,6 +9,7 @@ import com.example.demo.repository.AdminRepository;
 import com.example.demo.repository.ClientRepository;
 import com.example.demo.repository.DoctorRepository;
 import com.example.demo.security.JwtTokenService;
+import com.example.demo.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +18,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import com.example.demo.dto.ChangePasswordRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/auth")
@@ -27,7 +28,7 @@ public class AuthController {
 
     @Autowired private AuthenticationManager authenticationManager;
     @Autowired private JwtTokenService jwtTokenService;
-    @Autowired private UserDetailsService userDetailsService;
+    @Autowired private UserDetailsServiceImpl userDetailsService;
     @Autowired private ClientRepository clientRepository;
     @Autowired private DoctorRepository doctorRepository;
     @Autowired private AdminRepository adminRepository;
@@ -108,5 +109,21 @@ public class AuthController {
         adminRepository.save(admin);
 
         return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(admin.getLogin(), "ROLE_ADMIN")));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
+        String username = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(grantedAuthority -> grantedAuthority.getAuthority()) // например: ROLE_CLIENT
+                .orElseThrow(() -> new RuntimeException("Роль не найдена"));
+
+        try {
+            userDetailsService.changePassword(username, role, request.getOldPassword(), request.getNewPassword());
+            return ResponseEntity.ok("Пароль успешно изменен");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

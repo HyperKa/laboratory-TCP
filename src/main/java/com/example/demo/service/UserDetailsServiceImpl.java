@@ -12,6 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -27,6 +28,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired @Lazy
     private AdminRepository adminRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -61,5 +65,38 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         throw new UsernameNotFoundException("User not found with login: " + username);
+    }
+
+    public void changePassword(String login, String role, String oldPassword, String newPassword) {
+        switch (role.toUpperCase()) {
+            case "ROLE_CLIENT" -> {
+                Client client = clientRepository.findByLogin(login)
+                        .orElseThrow(() -> new UsernameNotFoundException("Клиент не найден"));
+                if (!passwordEncoder.matches(oldPassword, client.getPassword())) {
+                    throw new IllegalArgumentException("Неверный старый пароль");
+                }
+                client.setPassword(passwordEncoder.encode(newPassword));
+                clientRepository.save(client);
+            }
+            case "ROLE_DOCTOR" -> {
+                Doctor doctor = doctorRepository.findByLogin(login)
+                        .orElseThrow(() -> new UsernameNotFoundException("Доктор не найден"));
+                if (!passwordEncoder.matches(oldPassword, doctor.getPassword())) {
+                    throw new IllegalArgumentException("Неверный старый пароль");
+                }
+                doctor.setPassword(passwordEncoder.encode(newPassword));
+                doctorRepository.save(doctor);
+            }
+            case "ROLE_ADMIN" -> {
+                Admin admin = adminRepository.findByLogin(login)
+                        .orElseThrow(() -> new UsernameNotFoundException("Админ не найден"));
+                if (!passwordEncoder.matches(oldPassword, admin.getPassword())) {
+                    throw new IllegalArgumentException("Неверный старый пароль");
+                }
+                admin.setPassword(passwordEncoder.encode(newPassword));
+                adminRepository.save(admin);
+            }
+            default -> throw new IllegalArgumentException("Неподдерживаемая роль: " + role);
+        }
     }
 }
