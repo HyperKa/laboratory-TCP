@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 */
 
-import com.example.demo.entity.AnalysisResult;
-import com.example.demo.entity.Client;
+import com.example.demo.dto.AnalysisResultRequest;
+import com.example.demo.dto.AppointmentRecordDTO;
+import com.example.demo.dto.ClientDTO;
+import com.example.demo.dto.DoctorDTO;
+import com.example.demo.entity.*;
 import com.example.demo.repository.AnalysisResultRepository;
 import com.example.demo.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,26 @@ public class AnalysisResultService {
 
     @Autowired
     private ClientRepository clientRepository;
+
+    // Преобразование Entity -> DTO
+    public AnalysisResultRequest convertToDTO(AnalysisResult analysisResult) {
+        return new AnalysisResultRequest(analysisResult);
+    }
+
+    // Преобразование DTO -> Entity
+    public AnalysisResult convertToEntity(AnalysisResultRequest dto) {
+        AnalysisResult analysisResult = new AnalysisResult();
+        analysisResult.setRecordId(dto.getRecordId());
+        analysisResult.setResearchFile(dto.getResearchFile());
+        analysisResult.setAnalysisDate(dto.getAnalysisDate());
+        if (dto.getClientId() != null) {
+            Client client = clientRepository.findById(dto.getClientId())
+                    .orElseThrow(() -> new RuntimeException("Клиент не найден с ID: " + dto.getClientId()));
+            analysisResult.setClient(client);
+        }
+
+        return analysisResult;
+    }
 
     public List<AnalysisResult> getAllClients() {
         return analysisResultRepository.findAll();
@@ -65,4 +88,29 @@ public class AnalysisResultService {
         // Сохраняем анализ
         return analysisResultRepository.save(analysisResult);
     }
+
+
+    // Обновление записи из DTO
+    public AnalysisResult updateAnalysisResult(Long recordId, AnalysisResultRequest updatedDto) {
+        AnalysisResult existingRecord = analysisResultRepository.findById(recordId)
+                .orElseThrow(() -> new RuntimeException("Record not found with ID: " + recordId));
+
+        // Обновляем поля существующей записи
+
+        if (updatedDto.getClientId() != null) {      // <--- вас конечно не должно ничего смущать
+            existingRecord.setResearchFile(updatedDto.getResearchFile());
+        }
+        if (updatedDto.getAnalysisDate() != null) {
+            existingRecord.setAnalysisDate(updatedDto.getAnalysisDate());
+        }
+        if (updatedDto.getClientId() != null) {     // <--- тут тоже
+            Client client = clientRepository.findById(updatedDto.getClientId())
+                    .orElseThrow(() -> new RuntimeException("Клиент не найден с ID: " + updatedDto.getClientId()));
+            // Оказывается это .orElseThrow обязательно, так JPA запрос может быть пустым, а Client требует корректной обработки
+            existingRecord.setClient(client);
+        }
+
+        return analysisResultRepository.save(existingRecord);
+    }
+
 }

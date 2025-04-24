@@ -9,7 +9,9 @@ import com.example.demo.repository.AdminRepository;
 import com.example.demo.repository.ClientRepository;
 import com.example.demo.repository.DoctorRepository;
 import com.example.demo.security.JwtTokenService;
+import com.example.demo.service.BlacklistService;
 import com.example.demo.service.UserDetailsServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +24,8 @@ import com.example.demo.dto.ChangePasswordRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -33,6 +37,7 @@ public class AuthController {
     @Autowired private DoctorRepository doctorRepository;
     @Autowired private AdminRepository adminRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private BlacklistService blacklistService;
 
 
        // 🔐 Авторизация (общая)
@@ -126,4 +131,21 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            try {
+                // Извлекаем дату истечения токена
+                LocalDateTime expiryDate = jwtTokenService.extractExpiration(token);
+                blacklistService.addToBlacklist(token, expiryDate);
+                return ResponseEntity.ok("Logged out successfully");
+            } catch (ExpiredJwtException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token already expired");
+            }
+        }
+        return ResponseEntity.badRequest().body("Invalid token");
+    }
+
 }

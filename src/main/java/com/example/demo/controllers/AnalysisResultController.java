@@ -1,7 +1,9 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.AnalysisResultRequest;
+import com.example.demo.dto.DiseaseHistoryDTO;
 import com.example.demo.entity.AnalysisResult;
+import com.example.demo.entity.DiseaseHistory;
 import com.example.demo.service.AnalysisResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +20,14 @@ public class AnalysisResultController {
 
     // CREATE: Создание нового анализа
     @PostMapping
-    public ResponseEntity<AnalysisResult> createAnalysisResult(@RequestBody AnalysisResultRequest request) {
+    public ResponseEntity<AnalysisResultRequest> createAnalysisResult(@RequestBody AnalysisResultRequest request) {
         AnalysisResult createdRecord = analysisResultService.createAnalysisResult(
             request.getResearchFile(),
             request.getAnalysisDate(),
             request.getClientId()
         );
-        return ResponseEntity.status(201).body(createdRecord);
+        AnalysisResultRequest dto = analysisResultService.convertToDTO(createdRecord);
+        return ResponseEntity.status(201).body(dto);
     }
 
     // READ: Получение всех анализов
@@ -43,6 +46,16 @@ public class AnalysisResultController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PutMapping("/{recordId}")
+    public ResponseEntity<AnalysisResultRequest> updateRecord(
+            @PathVariable long recordId,
+            @RequestBody AnalysisResultRequest request) {
+
+        AnalysisResult updatedRecord = analysisResultService.updateAnalysisResult(recordId, request);
+        AnalysisResultRequest dto = analysisResultService.convertToDTO(updatedRecord);
+        return ResponseEntity.ok(dto);
     }
 
     // DELETE: Удаление анализа

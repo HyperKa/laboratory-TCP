@@ -47,6 +47,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Проверка доктора
         Doctor doctor = doctorRepository.findByLogin(username).orElse(null);
         if (doctor != null) {
+            System.out.println("Found doctor: " + doctor.getLogin() + '\n' + doctor.getPassword());
+            String rawPassword = "qwerty"; // Пароль, введенный пользователем
+            String hashedPassword = doctor.getPassword(); // Хэшированный пароль из базы данных
+
+            if (passwordEncoder.matches(rawPassword, hashedPassword)) {
+                System.out.println("Пароль верный!");
+            } else {
+                System.out.println("Пароль неверный!");
+            }
             return new org.springframework.security.core.userdetails.User(
                     doctor.getLogin(),
                     doctor.getPassword(),

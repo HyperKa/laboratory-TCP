@@ -42,12 +42,29 @@ public class SecurityConfig {
                         // Доктора может регать только админ
                         .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
 
-                        // РОЛЬ КЛИЕНТА: доступ только к своим записям (GET)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/analysis_results/{id}").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/appointment_records/{id}").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/disease_history/{id}").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/{id}").hasRole("CLIENT")
+
+                        .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")  // Вот тут тестить надо
+                        //.requestMatchers(HttpMethod.GET, "/api/v1/disease-history/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        //.requestMatchers(HttpMethod.GET, "/api/v1/clients").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/analysis-results/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/appointment-records/{recordId}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/disease-history/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+
+
+
+                        // ОГРАНИЧЕНИЕ ДЛЯ ДОКТОРОВ: не могут создавать/редактировать/удалять записи в своей таблице
+                        //.requestMatchers(HttpMethod.POST, "/api/v1/doctors/**").denyAll()
+                        //.requestMatchers(HttpMethod.PUT, "/api/v1/doctors/**").denyAll()
+                        //.requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/**").denyAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/doctors/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/doctors/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/**").hasRole("ADMIN")
+
 
                         // РОЛЬ ДОКТОРА: доступ ко всем таблицам, но не может изменять свою таблицу
                         .requestMatchers(HttpMethod.GET, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
@@ -55,16 +72,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
 
-                        // ОГРАНИЧЕНИЕ ДЛЯ ДОКТОРОВ: не могут создавать/редактировать/удалять записи в своей таблице
-                        .requestMatchers(HttpMethod.POST, "/api/v1/doctors/**").denyAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/doctors/**").denyAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/**").denyAll()
 
                         // РОЛЬ АДМИНА: полный доступ ко всем таблицам
                         .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasRole("ADMIN")
+                        // тут было ограничение для доктора
+
 
                     .anyRequest().authenticated()
                 )

@@ -121,9 +121,13 @@ public class DoctorService {
         doctor.setExperience(dto.getExperience());
         doctor.setLogin(dto.getLogin());
 
-        dto.setPassword(doctor.getPassword());
-        dto.setRole(dto.getRole());
-        // Пароль не устанавливается здесь, так как он может быть обработан отдельно
+        //dto.setPassword(doctor.getPassword()); // <-- Вот из-за этой хуйни пароль не сохранялся и он был null.
+        // Я тут потрясающий ход свершил, беру пустую сущность доктора, из нее беру пароль null и сохраняю это в ответ dto
+        //dto.setRole(dto.getRole());  // <-- Эта хрень по факту не важна, но пусть будет, вроде в JwtTokenService роль сама устанавливается. Напиздел, через UserDetailsService, ну наконец-то заработало)
+
+        //doctor.setPassword(dto.getPassword());
+        doctor.setPassword(passwordEncoder.encode(dto.getPassword()));
+        doctor.setRole(dto.getRole());
         return doctor;
     }
 

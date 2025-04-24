@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -90,5 +91,19 @@ public class JwtTokenService {
                 Collections.singletonList(new SimpleGrantedAuthority(role))
         );
         return generateToken(userDetails);
+    }
+
+    /*
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+    */
+
+    // это нужно для фиксации времени, когда токен удаляется из блэклиста автоматически
+    public LocalDateTime extractExpiration(String token) {
+        Date expirationDate = extractClaim(token, Claims::getExpiration);
+        return expirationDate.toInstant()
+                             .atZone(java.time.ZoneId.systemDefault())
+                             .toLocalDateTime();
     }
 }

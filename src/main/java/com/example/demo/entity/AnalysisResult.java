@@ -23,7 +23,7 @@ public class AnalysisResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "record_id", nullable = false)
-    private int recordId;
+    private Long recordId;
 
     @Column(name = "research_file", nullable = false)
     private String researchFile;
