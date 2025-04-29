@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class ClientDTO {
 
     // Новые поля
     private String login;
+    //@JsonIgnore
     private String password;
     private Role role; // или Role (если используете Enum)
 
@@ -36,7 +38,7 @@ public class ClientDTO {
         this.address = client.getAddress();
         this.passport = client.getPassport();
         this.login = client.getLogin();
-        this.password = client.getPassword();
+        //this.password = client.getPassword();
         this.role = client.getRole();
     }
 }

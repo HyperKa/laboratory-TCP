@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.Doctor;
 import com.example.demo.entity.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ public class DoctorDTO {
     private String specialization;
     private String experience;
     private String login;
+    //@JsonIgnore
     private String password;
     private Role role; // или Role (если используете Enum)
 
@@ -28,7 +30,7 @@ public class DoctorDTO {
         this.specialization = doctor.getSpecialization();
         this.experience = doctor.getExperience();
         this.login = doctor.getLogin();
-        this.password = doctor.getPassword();
+        //this.password = doctor.getPassword();
         this.role = doctor.getRole();
     }
 }
