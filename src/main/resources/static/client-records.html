@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мои записи</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        a.button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        a.button:hover {
+            background-color: #0056b3;
+        }
+        #error-message {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Мои записи</h1>
+
+    <p id="error-message"></p>
+
+    <table id="records-table">
+        <thead>
+        <tr>
+            <th>ID Записи</th>
+            <th>Дата</th>
+            <th>Время</th>
+            <th>Услуга</th>
+            <th>Доктор</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Данные будут добавлены сюда динамически -->
+        </tbody>
+    </table>
+
+    <a href="client-menu.html" class="button">← Вернуться в меню</a>
+</div>
+
+<script>
+    // Получаем токен из localStorage
+    const token = localStorage.getItem('jwtToken');
+
+    // Если токена нет — перенаправляем на login
+    if (!token) {
+        alert("Вы не авторизованы");
+        window.location.href = "login.html";
+    }
+
+    // Получаем данные с сервера
+    fetch('/api/v1/appointment-records/{recordId}', {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Ошибка загрузки данных");
+            }
+            return response.json();
+        })
+        .then(data => {
+            const tbody = document.querySelector("#records-table tbody");
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Записей пока нет</td></tr>';
+                return;
+            }
+
+            data.forEach(record => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${record.recordId || record.id}</td>
+                <td>${record.appointmentDate}</td>
+                <td>${record.appointmentTime}</td>
+                <td>${record.serviceName}</td>
+                <td>${record.doctor?.firstName} ${record.doctor?.lastName}</td>
+            `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error("Ошибка:", error);
+            document.getElementById('error-message').innerText = 'Не удалось загрузить записи.';
+        });
+</script>
+
+</body>
+</html>

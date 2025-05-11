@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+
+    <!-- Подключение Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css ">
+
+    <!-- Подключение шрифта Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto :wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding-top: 60px;
+            background-color: #f0f4f8;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px 0;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s;
+        }
+
+        .nav-button:hover {
+            color: #ffa500;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-container h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .login-container label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 25px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-container button:hover {
+            background-color: #0056b3;
+        }
+
+        #error-message {
+            color: red;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .register-link a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 16px;
+        }
+
+        .register-link a:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Навигационная панель -->
+<div class="navbar">
+    <a class="nav-button" href="/"><i class="fas fa-home"></i> Главная</a>
+    <a class="nav-button" href="#" onclick="goToProfile()"><i class="fas fa-user"></i> Профиль</a>
+</div>
+
+<!-- Форма входа -->
+<div class="login-container">
+    <h1>Вход</h1>
+    <form id="loginForm" onsubmit="login(event)">
+        <label for="username">Логин:</label>
+        <input type="text" id="username" required>
+
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" required>
+
+        <button type="submit">Войти</button>
+
+        <div id="error-message"></div>
+    </form>
+
+    <div class="register-link">
+        <p>Нет аккаунта? <a href="register-client.html">Зарегистрироваться</a></p>
+    </div>
+</div>
+
+<script>
+    // Если токен уже есть — перенаправляем в меню
+    if (localStorage.getItem("jwtToken")) {
+        window.location.href = "client-records.html";
+    }
+    localStorage.removeItem('jwtToken');
+    async function login(event) {
+        event.preventDefault();
+
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const response = await fetch('http://localhost:8080/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!response.ok) {
+                throw new Error("Ошибка авторизации");
+            }
+
+            const data = await response.json();
+            localStorage.setItem("jwtToken", data.token);
+
+            // Перенаправление на страницу записей
+            window.location.href = "client-records.html";
+
+        } catch (error) {
+            document.getElementById("error-message").textContent = "Неверный логин или пароль.";
+        }
+    }
+
+    function goToProfile() {
+        if (localStorage.getItem("jwtToken")) {
+            window.location.href = "client-menu.html";
+        } else {
+            window.location.href = "login.html";
+        }
+    }
+</script>
+
+</body>
+</html>

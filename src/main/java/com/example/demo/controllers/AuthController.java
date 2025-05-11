@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import org.springframework.ui.Model;
 import com.example.demo.dto.*;
 import com.example.demo.entity.Admin;
 import com.example.demo.entity.Client;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
+
 
 @RestController
 @RequestMapping("/auth")
@@ -38,6 +41,10 @@ public class AuthController {
     @Autowired private AdminRepository adminRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private BlacklistService blacklistService;
+
+
+
+
 
 
        // 🔐 Авторизация (общая)
@@ -54,6 +61,7 @@ public class AuthController {
         String token = jwtTokenService.generateToken(userDetails);
         return ResponseEntity.ok(new JwtResponse(token));
     }
+
 
 
     // 📝 Регистрация клиента

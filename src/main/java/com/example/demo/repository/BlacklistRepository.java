@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
-public interface BlacklistRepository extends JpaRepository<Blacklist, Long> {
+public interface BlacklistRepository extends JpaRepository<Blacklist, String> {
     Optional<Blacklist> findByToken(String token);
 
     @Modifying
