@@ -80,6 +80,8 @@ import com.example.demo.repository.DoctorRepository;
 import com.example.demo.service.AppointmentRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -107,8 +109,9 @@ public class AppointmentRecordController {
 
     // Создание новой записи
     @PostMapping
-    public ResponseEntity<AppointmentRecordDTO> createRecord(@RequestBody AppointmentRecordDTO dto) {
-        AppointmentRecord createdRecord = appointmentRecordService.createRecordFromDTO(dto);
+    public ResponseEntity<AppointmentRecordDTO> createRecord(@RequestBody AppointmentRecordDTO dto, @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        AppointmentRecord createdRecord = appointmentRecordService.createRecordFromDTO(dto, username);
         return ResponseEntity.status(201).body(appointmentRecordService.convertToDTO(createdRecord));
     }
 

@@ -200,5 +200,54 @@ public class DiseaseHistoryService {
         }
 
         return dto;
-}
+    }
+
+    public List<DiseaseHistoryDTO> getHistoryForClient(String username) {
+        // Получаем ID клиента по логину
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Client not found with login: " + username));
+
+        // Получаем все записи клиента
+        List<DiseaseHistory> history = diseaseHistoryRepository.findByClientId((long) client.getId());
+
+        // Преобразуем в DTO
+        return history.stream()
+                .map(diseaseHistory -> convertToDTO(diseaseHistory))
+                .collect(Collectors.toList());
+    }
+
+
+    // для фронта:
+
+    public Optional<DiseaseHistoryDTO> getRecordByIdAsDTO(int id) {
+        return diseaseHistoryRepository.findById(id)
+                .map(this::convertToDTO);
+    }
+
+    public DiseaseHistoryDTO createFromWebDTO(DiseaseHistoryDTO dto, String username) {
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Клиент с логином " + username + " не найден"));
+
+        dto.setClientId(client.getId());
+
+        DiseaseHistory created = createRecord(dto);
+        return convertToDTO(created);
+    }
+
+    // Получение записи по ID
+    public List<DiseaseHistoryDTO> getAllByClientUsername(String username) {
+        // Получаем клиента по логину
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Клиент с логином " + username + " не найден"));
+
+        // Получаем все DiseaseHistory по clientId
+        List<DiseaseHistory> histories = diseaseHistoryRepository.findByClientId((long) client.getId());
+
+        // Преобразуем в DTO (без необходимости включать сам объект Client)
+        return histories.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
 }

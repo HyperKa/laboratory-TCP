@@ -35,9 +35,12 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
+                        .requestMatchers("/").permitAll()
                         .requestMatchers("/auth/login/**").permitAll()
                         .requestMatchers("/auth/register/client").permitAll()
                         .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа
+
+                        .requestMatchers("/client/dashboard").hasRole("CLIENT")
 
                         // Доктора может регать только админ
                         .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
@@ -52,6 +55,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/appointment-records/{recordId}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/disease-history/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/doctors/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+
+
+                        // Доступ к веб-контроллеру /web/appointments для CLIENT, DOCTOR, ADMIN
+                        .requestMatchers("/web/appointments/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers("/web/analysis-results/api/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers("/web/analysis-results/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+
 
 
 
@@ -102,4 +112,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
+
 }

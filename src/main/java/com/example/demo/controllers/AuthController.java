@@ -12,6 +12,8 @@ import com.example.demo.security.JwtTokenService;
 import com.example.demo.service.BlacklistService;
 import com.example.demo.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.dto.ChangePasswordRequest;
 import org.springframework.http.HttpStatus;
@@ -26,7 +29,7 @@ import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
 
-@RestController
+@Controller
 @RequestMapping("/auth")
 public class AuthController {
 
@@ -41,8 +44,10 @@ public class AuthController {
 
 
        // 🔐 Авторизация (общая)
+    // на светлую и добрую память:
+    /*
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -52,69 +57,40 @@ public class AuthController {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
         String token = jwtTokenService.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtResponse(token));
+
+        // Установка токена в куки:
+        Cookie jwtCookie = new Cookie("jwt", token);
+        jwtCookie.setHttpOnly(true); // защита XSS
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(60 * 60 * 24);  // Срок годности куки
+        response.addCookie(jwtCookie);
+        return ResponseEntity.ok("Login successful");
     }
+    */
+    @PostMapping("/login")
+    public String login(@RequestParam String login, @RequestParam String password, HttpServletResponse response) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(login, password)
+            );
 
+            UserDetails userDetails = userDetailsService.loadUserByUsername(login);
+            String token = jwtTokenService.generateToken(userDetails);
 
-    // 📝 Регистрация клиента
-    @PostMapping("/register/client")
-    public ResponseEntity<?> registerClient(@RequestBody ClientDTO dto) {
-        if (clientRepository.findByLogin(dto.getLogin()).isPresent()) {
-            return ResponseEntity.badRequest().body("Client already exists");
+            Cookie jwtCookie = new Cookie("jwt", token);
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(60 * 60 * 24);
+            response.addCookie(jwtCookie);
+
+            return "redirect:/client/dashboard"; // или другой маршрут после успешного входа
+        } catch (Exception e) {
+            return "redirect:/auth/login?error=invalid_credentials";
         }
-
-        Client client = new Client();
-        client.setLogin(dto.getLogin());
-        client.setPassword(passwordEncoder.encode(dto.getPassword()));
-        client.setAge(dto.getAge());
-        client.setGender(dto.getGender());
-        client.setLastName(dto.getLastName());
-        client.setFirstName(dto.getFirstName());
-        client.setAddress(dto.getAddress());
-        client.setPassport(dto.getPassport());
-        client.setRole(Role.CLIENT);
-
-        clientRepository.save(client);
-
-        return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(client.getLogin(), "ROLE_CLIENT")));
     }
 
-    // 📝 Регистрация доктора
-    @PostMapping("/register/doctor")
-    public ResponseEntity<?> registerDoctor(@RequestBody DoctorDTO dto) {
-        if (doctorRepository.findByLogin(dto.getLogin()).isPresent()) {
-            return ResponseEntity.badRequest().body("Doctor already exists");
-        }
 
-        Doctor doctor = new Doctor();
-        doctor.setLogin(dto.getLogin());
-        doctor.setPassword(passwordEncoder.encode(dto.getPassword()));
-        doctor.setLastName(dto.getLastName());
-        doctor.setFirstName(dto.getFirstName());
-        doctor.setSpecialization(dto.getSpecialization());
-        doctor.setExperience(dto.getExperience());
-        doctor.setRole(Role.DOCTOR);
 
-        doctorRepository.save(doctor);
-
-        return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(doctor.getLogin(), "ROLE_DOCTOR")));
-    }
-
-    // 📝 Регистрация админа
-    @PostMapping("/register/admin")
-    public ResponseEntity<?> registerAdmin(@RequestBody Admin dto) {
-        if (adminRepository.findByLogin(dto.getLogin()).isPresent()) {
-            return ResponseEntity.badRequest().body("Admin already exists");
-        }
-
-        Admin admin = new Admin();
-        admin.setLogin(dto.getLogin());
-        admin.setPassword(passwordEncoder.encode(dto.getPassword()));
-
-        adminRepository.save(admin);
-
-        return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(admin.getLogin(), "ROLE_ADMIN")));
-    }
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
@@ -123,6 +99,10 @@ public class AuthController {
                 .findFirst()
                 .map(grantedAuthority -> grantedAuthority.getAuthority()) // например: ROLE_CLIENT
                 .orElseThrow(() -> new RuntimeException("Роль не найдена"));
+
+        if (request.getOldPassword().equals(request.getNewPassword())) {
+            return ResponseEntity.badRequest().body("Новый и старый пароли должны различаться, брат");
+        }
 
         try {
             userDetailsService.changePassword(username, role, request.getOldPassword(), request.getNewPassword());
@@ -133,19 +113,21 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            try {
-                // Извлекаем дату истечения токена
-                LocalDateTime expiryDate = jwtTokenService.extractExpiration(token);
-                blacklistService.addToBlacklist(token, expiryDate);
-                return ResponseEntity.ok("Logged out successfully");
-            } catch (ExpiredJwtException e) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token already expired");
-            }
-        }
-        return ResponseEntity.badRequest().body("Invalid token");
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+
+        Cookie jwtCookie = new Cookie("jwt", "");
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0);
+
+        response.addCookie(jwtCookie);
+
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
+    @GetMapping("/login")
+    public String showLoginPage() {
+        return "login"; // переход на страницу login.html
     }
 
 }

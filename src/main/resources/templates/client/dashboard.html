@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{layout/base :: layout(~{::content})}">
+    <th:block th:fragment="content">
+
+        <h1>Добро пожаловать в личный кабинет</h1>
+
+        <div th:if="${успешно}" class="alert success">
+            <p th:text="${успешно}">Профиль обновлен</p>
+        </div>
+
+        <div th:if="${ошибка}" class="alert error">
+            <p th:text="${ошибка}">Ошибка при обновлении профиля</p>
+        </div>
+
+        <h2>Ваш профиль</h2>
+        <form th:action="@{/client/profile}" method="post" th:object="${client}">
+            <label>Имя:
+                <input type="text" th:field="*{firstName}" required/>
+            </label><br/>
+
+            <label>Фамилия:
+                <input type="text" th:field="*{lastName}" required/>
+            </label><br/>
+
+            <label>Возраст:
+                <input type="number" th:field="*{age}" required/>
+            </label><br/>
+
+            <label>Пол:
+                <input type="text" th:field="*{gender}" required/>
+            </label><br/>
+
+            <label>Адрес:
+                <input type="text" th:field="*{address}" required/>
+            </label><br/>
+
+            <label>Паспорт:
+                <input type="text" th:field="*{passport}" required/>
+            </label><br/>
+
+            <button type="submit">Обновить профиль</button>
+        </form>
+
+        <hr/>
+
+        <h2>Ваши записи на приём</h2>
+        <table border="1">
+            <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Время</th>
+                <th>Услуга</th>
+                <th>Врач</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="record : ${records}">
+                <td th:text="${record.appointmentDate}">2025-05-01</td>
+                <td th:text="${record.appointmentTime}">10:00</td>
+                <td th:text="${record.serviceName}">Терапия</td>
+                <td th:text="${record.doctorId}">1</td>
+                <td>
+                    <form th:action="@{'/web/appointments/' + ${record.recordId} + '/delete'}" method="post">
+                        <button type="submit">Удалить</button>
+                    </form>
+                    <a th:href="@{'/web/appointments/' + ${record.recordId} + '/edit'}">Редактировать</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <hr/>
+
+        <h2>Добавить новую запись</h2>
+        <form action="/web/appointments" method="post">
+            <label>Дата:
+                <input type="date" name="appointmentDate" required />
+            </label><br/>
+            <label>Время:
+                <input type="time" name="appointmentTime" required />
+            </label><br/>
+            <label>Услуга:
+                <input type="text" name="serviceName" required />
+            </label><br/>
+            <label>ID врача:
+                <input type="number" name="doctorId" required />
+            </label><br/>
+            <button type="submit">Сохранить</button>
+        </form>
+
+        <hr/>
+
+
+        <h2>История болезней</h2>
+        <table border="1">
+            <thead>
+            <tr>
+                <th>Начало лечения</th>
+                <th>Окончание</th>
+                <th>Диагноз</th>
+                <th>Врач</th>
+                <th>Профессия</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="history : ${diseaseHistories}">
+                <td th:text="${#temporals.format(history.startDate, 'yyyy-MM-dd HH:mm')}">2025-05-01 12:00</td>
+                <td th:text="${#temporals.format(history.endDate, 'yyyy-MM-dd HH:mm')}">2025-05-10 13:00</td>
+                <td th:text="${history.disease}">Грипп</td>
+                <td th:text="${history.firstNameDoctor + ' ' + history.lastNameDoctor}">Иванов И.И.</td>
+                <td th:text="${history.profession}">Терапевт</td>
+                <td>
+                    <a th:href="@{'/web/disease-history/' + ${history.recordId}}">Просмотр</a> |
+                    <a th:href="@{'/web/disease-history/' + 'new'}">Добавить</a>
+                    <a th:href="@{'/web/disease-history/' + ${history.recordId} + '/edit'}">Редактировать</a>
+                    <form th:action="@{'/web/disease-history/' + ${history.recordId} + '/delete'}" method="post" style="display:inline;">
+                        <button type="submit">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <hr/>
+
+        <h2>Результаты анализов</h2>
+        <th:block th:replace="~{analysis-results/list :: content}"></th:block>
+
+        <!-- Модальное окно добавления -->
+        <div id="addAnalysisModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal('addAnalysisModal')">&times;</span>
+                <h2>Добавить новый анализ</h2>
+                <form id="addAnalysisForm" method="post" action="/web/analysis-results">
+                    <label>Файл исследования:
+                        <input type="text" name="researchFile" required/>
+                    </label><br/>
+                    <label>Дата анализа:
+                        <input type="date" name="analysisDate" required/>
+                    </label><br/>
+                    <button type="submit" class="button">Сохранить</button>
+                    <button type="button" class="button button-cancel" onclick="closeModal('addAnalysisModal')">Закрыть</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования -->
+        <div id="editAnalysisModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal('editAnalysisModal')">&times;</span>
+                <h2>Редактировать анализ</h2>
+                <form id="editAnalysisForm" method="post">
+                    <input type="hidden" name="recordId" id="editRecordId"/>
+                    <label>Файл исследования:
+                        <input type="text" name="researchFile" id="editResearchFile" required/>
+                    </label><br/>
+                    <label>Дата анализа:
+                        <input type="date" name="analysisDate" id="editAnalysisDate" required/>
+                    </label><br/>
+                    <button type="submit" class="button">Сохранить</button>
+                    <button type="button" class="button button-cancel" onclick="closeModal('editAnalysisModal')">Закрыть</button>
+                </form>
+            </div>
+        </div>
+
+        <a href="#" onclick="openAddModal()">Добавить результат анализа</a>
+
+        <!-- CSRF токены (отключены в SecurityConfig, поэтому хрен с ними) -->
+        <!-- <input type="hidden" id="csrfToken" th:value="${_csrf.token}" />
+        <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}" /> -->
+
+    </th:block>
+</th:block>
+</html>

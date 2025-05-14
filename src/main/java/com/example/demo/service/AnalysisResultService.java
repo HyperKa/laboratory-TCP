@@ -10,10 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 */
 
-import com.example.demo.dto.AnalysisResultRequest;
-import com.example.demo.dto.AppointmentRecordDTO;
-import com.example.demo.dto.ClientDTO;
-import com.example.demo.dto.DoctorDTO;
+import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.repository.AnalysisResultRepository;
 import com.example.demo.repository.ClientRepository;
@@ -24,6 +21,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 @Service
 public class AnalysisResultService {
@@ -62,7 +60,7 @@ public class AnalysisResultService {
         return analysisResultRepository.findById(id).orElse(null);
     }
 
-    public void deleteClient(Long id) {
+    public void deleteAnalysisResult(Long id) {
         analysisResultRepository.deleteById(id);
     }
 
@@ -89,6 +87,32 @@ public class AnalysisResultService {
         return analysisResultRepository.save(analysisResult);
     }
 
+    // Создание анализа "в одну строку"
+    public AnalysisResult createAnalysisResultAsDto(AnalysisResultRequest dto, String username) {
+        // Находим клиента по ID
+        Client client;
+        if (dto.getClientId() != null) {
+            client = clientRepository.findByLogin(username)
+                    .orElseThrow(() -> new RuntimeException("Клиент с именем " + username + " не найден"));
+        } else {
+            client = clientRepository.findByLogin(username)
+                    .orElseThrow(() -> new RuntimeException("Клиент с именем " + username + " не найден"));
+        }
+        // Создаем новый анализ
+        AnalysisResult analysisResult = new AnalysisResult();
+        analysisResult.setResearchFile(dto.getResearchFile());
+        analysisResult.setAnalysisDate(dto.getAnalysisDate());
+        analysisResult.setClient(client);
+
+        // Сохраняем анализ
+        return analysisResultRepository.save(analysisResult);
+    }
+
+    // Получение записи по ID в виде DTO
+    public Optional<AnalysisResultRequest> getRecordByIdAsDTO(Long recordId) {
+        return analysisResultRepository.findById(recordId).map(this::convertToDTO);
+    }
+
 
     // Обновление записи из DTO
     public AnalysisResult updateAnalysisResult(Long recordId, AnalysisResultRequest updatedDto) {
@@ -97,7 +121,7 @@ public class AnalysisResultService {
 
         // Обновляем поля существующей записи
 
-        if (updatedDto.getClientId() != null) {      // <--- вас конечно не должно ничего смущать
+        if (updatedDto.getResearchFile() != null) {      // <--- вас конечно не должно ничего смущать
             existingRecord.setResearchFile(updatedDto.getResearchFile());
         }
         if (updatedDto.getAnalysisDate() != null) {
@@ -111,6 +135,45 @@ public class AnalysisResultService {
         }
 
         return analysisResultRepository.save(existingRecord);
+    }
+
+    public List<AnalysisResultRequest> getResultsForClient(String username) {
+        // Получаем ID клиента по логину
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Client not found with login: " + username));
+
+        // Получаем результаты анализов клиента
+        List<AnalysisResult> results = analysisResultRepository.findByClientId((long) client.getId());
+
+        // Преобразуем в DTO
+        return results.stream()
+                .map(analysisResult -> convertToDTO(analysisResult))
+                .collect(Collectors.toList());
+    }
+
+
+
+    // Пригодится для админов и докторов
+    public List<AnalysisResultRequest> getAllRecordsAsDTO() {
+        return analysisResultRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    // Получение записи по ID для клиента
+    public List<AnalysisResultRequest> getAllByClientUsername(String username) {
+        // Получаем клиента по логину
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Клиент с логином " + username + " не найден"));
+
+        // Получаем все DiseaseHistory по clientId
+        List<AnalysisResult> analysisResults = analysisResultRepository.findByClientId((long) client.getId());
+
+        // Преобразуем в DTO (без необходимости включать сам объект Client)
+        return analysisResults.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
 }

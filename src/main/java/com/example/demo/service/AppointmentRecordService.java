@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -98,10 +100,67 @@ public class AppointmentRecordService {
         return appointmentRecordRepository.findById(recordId);
     }
 
+    //закомментированно намеренно, чтобы система могла сама создавать disease_history запись без предварительного участия врача
+    /*
     // Создание записи из DTO
     public AppointmentRecord createRecordFromDTO(AppointmentRecordDTO dto) {
         AppointmentRecord record = convertToEntity(dto);
         return appointmentRecordRepository.save(record);
+    }
+     */
+
+    public AppointmentRecord createRecordFromDTO(AppointmentRecordDTO dto, String username) {
+        // Найти клиента по логину
+        Client client = clientRepository.findByLogin(username)
+            .orElseThrow(() -> new RuntimeException("Client not found"));
+
+        // Найти врача по ID
+        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+            .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        DiseaseHistory diseaseHistory;
+
+        // Если в DTO указан ID истории болезни — используем его
+        if (dto.getDiseaseHistoryId() != null) {
+            diseaseHistory = diseaseHistoryRepository.findById(dto.getDiseaseHistoryId())
+                .orElseThrow(() -> new RuntimeException("DiseaseHistory not found"));
+        } else {
+            // Поиск активной истории болезни по клиенту и текущему диагнозу
+            diseaseHistory = diseaseHistoryRepository.findFirstByClientIdAndDisease(client.getId(), dto.getServiceName())
+                .orElseGet(() -> {
+                    DiseaseHistory dh = new DiseaseHistory();
+                    dh.setClientId(client.getId());
+                    dh.setDoctor(doctor);
+                    dh.setDoctorId((long) doctor.getId());
+                    dh.setFirstNameDoctor(doctor.getFirstName());
+                    dh.setLastNameDoctor(doctor.getLastName());
+                    dh.setProfession(doctor.getSpecialization());
+                    dh.setStartDate(LocalDateTime.now());
+                    dh.setEndDate(LocalDateTime.now());
+                    dh.setDisease(dto.getServiceName()); // используем название услуги как временный диагноз
+                    return diseaseHistoryRepository.save(dh);
+                });
+        }
+
+        // Создание новой записи на приём
+        AppointmentRecord record = new AppointmentRecord();
+        record.setClient(client);
+        record.setDoctor(doctor);
+        record.setAppointmentDate(dto.getAppointmentDate());
+        record.setAppointmentTime(dto.getAppointmentTime());
+        record.setServiceName(dto.getServiceName());
+        record.setDiseaseHistory(diseaseHistory);
+
+        // Сохраняем и добавляем в историю болезни
+        AppointmentRecord saved = appointmentRecordRepository.save(record);
+        // Защита от null — инициализируем список, если он ещё не создан
+        if (diseaseHistory.getAppointmentRecords() == null) {
+            diseaseHistory.setAppointmentRecords(new ArrayList<>());
+        }
+
+diseaseHistory.getAppointmentRecords().add(saved);
+
+        return saved;
     }
 
 
@@ -163,4 +222,29 @@ public class AppointmentRecordService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+
+    public List<AppointmentRecordDTO> getRecordsByClientUsername(String username) {
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Клиент не найден"));
+        return appointmentRecordRepository.findByClient(client)
+                .stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
+    public List<AppointmentRecordDTO> getAppointmentsForClient(String username) {
+        // Получаем ID клиента по логину
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Client not found with login: " + username));
+
+        // Получаем все записи клиента
+        //List<AppointmentRecord> records = appointmentRecordRepository.findByClientId((long) client.getId());
+        List<AppointmentRecord> records = appointmentRecordRepository.findByClient(client);
+
+        // Преобразуем в DTO
+        return records.stream()
+                .map(appointmentRecord -> convertToDTO(appointmentRecord))
+                .collect(Collectors.toList());
+    }
+
 }

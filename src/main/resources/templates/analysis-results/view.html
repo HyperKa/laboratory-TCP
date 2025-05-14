@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Просмотр результата анализа</title>
+</head>
+<body>
+<h1>Просмотр результата анализа</h1>
+<p>Файл исследования: <span th:text="${analysisResults.researchFile}">file.pdf</span></p>
+<p>Дата анализа: <span th:text="${analysisResults.analysisDate}">2025-05-01</span></p>
+<a th:href="@{/client/dashboard}">Назад</a>
+</body>
+</html>

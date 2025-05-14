@@ -61,7 +61,7 @@ public class AnalysisResultController {
     // DELETE: Удаление анализа
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAnalysisResult(@PathVariable Long id) {
-        analysisResultService.deleteClient(id);
+        analysisResultService.deleteAnalysisResult(id);
         return ResponseEntity.noContent().build();
     }
 }

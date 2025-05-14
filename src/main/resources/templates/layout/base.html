@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle} ?: 'Медицинская система'">Медицинская система</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/main.js}" defer></script>
+</head>
+<body>
+
+<!-- Вставка header -->
+<div th:replace="~{layout/header :: header}"></div>
+
+<!-- Основной контент -->
+<main>
+    <div th:insert="${content}"></div>
+</main>
+
+<!-- Вставка footer -->
+<div th:replace="~{layout/footer :: footer}"></div>
+
+</body>
+</html>

@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.repository.ClientRepository;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,4 +35,13 @@ public class AnalysisResult {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
+
+    public void setClientById(Integer clientId, ClientRepository clientRepository) {
+        if (clientId != null) {
+            this.client = clientRepository.findById(Long.valueOf(clientId))
+                    .orElseThrow(() -> new RuntimeException("Клиент с ID " + clientId + " не найден"));
+        } else {
+            this.client = null;
+        }
+    }
 }

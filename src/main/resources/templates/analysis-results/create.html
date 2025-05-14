@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Запись результата анализа</title>
+</head>
+<body>
+<h1>Записать результат анализа</h1>
+<form th:action="@{/web/analysis-results}" th:object="${analysisResults}" method="post">
+    <label> Файл исследования: <input type="text" th:field="*{researchFile}" placeholder="Введите имя файла"></label><br>
+    <label> Дата анализа: <input type="date" th:field="*{analysisDate}" required/> </label><br>
+
+    <!-- Поле для ID клиента (доступно только для доктора или админа) -->
+    <div th:if="${#authorization.expression('hasAnyAuthority(''ROLE_DOCTOR'', ''ROLE_ADMIN'')')}">
+        <label>ID клиента:
+            <input type="number" th:field="*{clientId}" placeholder="Введите ID клиента" required/>
+        </label><br/>
+    </div>
+
+    <button type="submit">Сохранить</button>
+</form>
+</body>
+</html>

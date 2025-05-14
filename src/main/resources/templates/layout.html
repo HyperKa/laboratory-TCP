@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Медицинская система</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/main.js}" defer></script>
+</head>
+<body>
+<header>
+    <nav>
+        <a th:href="@{/}">Главная</a>
+        <a th:href="@{/auth/login}" th:if="${#authorization.expression('isAnonymous()')}">Вход</a>
+        <a th:href="@{/auth/register/client}" th:if="${#authorization.expression('isAnonymous()')}">Регистрация клиента</a>
+        <a th:href="@{/auth/logout}" th:if="${#authorization.expression('isAuthenticated()')}">Выход</a>
+    </nav>
+</header>
+
+<div th:fragment="layout(content)">
+    <div th:replace="${content}"></div>
+</div>
+
+<footer>
+    <p>&copy; 2023 Медицинская система</p>
+</footer>
+</body>
+</html>
+

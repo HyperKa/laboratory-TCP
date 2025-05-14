@@ -29,10 +29,15 @@ public class JwtTokenService {
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .toList());
+
+        System.out.println("Generated token for user: " + userDetails.getUsername()
+        + ", Roles: " + userDetails.getAuthorities());
+
         return createToken(claims, userDetails.getUsername());
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        System.out.println("Token created for subject: " + subject);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
@@ -43,6 +48,7 @@ public class JwtTokenService {
     }
 
     public Boolean validateToken(String token) {
+        System.out.println("Validating token for user: " + extractUsername(token));
         try {
             // Парсим токен и проверяем подпись
             Jwts.parser()
@@ -59,7 +65,12 @@ public class JwtTokenService {
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (Exception e) {
+            System.out.println("Error extracting username: " + e.getMessage());
+            return null;
+        }
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

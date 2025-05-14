@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{layout/base :: layout(~{::content})}">
+    <th:block th:fragment="content">
+        <h1>Welcome to the Medical System!</h1>
+        <div class="buttons">
+            <a th:href="@{/auth/register/client}" class="button">Регистрация клиента</a>
+            <a th:href="@{/auth/login}" class="button">Вход</a>
+        </div>
+    </th:block>
+</th:block>
+</html>

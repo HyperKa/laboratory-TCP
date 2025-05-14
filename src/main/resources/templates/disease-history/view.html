@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<h2>Детали истории болезни</h2>
+
+<p><strong>ФИО врача:</strong> <span th:text="${diseaseHistory.lastNameDoctor + ' ' + diseaseHistory.firstNameDoctor}"></span></p>
+<p><strong>Профессия:</strong> <span th:text="${diseaseHistory.profession}"></span></p>
+<p><strong>Начало лечения:</strong> <span th:text="${#temporals.format(diseaseHistory.startDate, 'yyyy-MM-dd HH:mm')}"></span></p>
+<p><strong>Окончание лечения:</strong> <span th:text="${#temporals.format(diseaseHistory.endDate, 'yyyy-MM-dd HH:mm')}"></span></p>
+<p><strong>Диагноз:</strong> <span th:text="${diseaseHistory.disease}"></span></p>
+
+<h3>Связанные приёмы</h3>
+<ul>
+    <li th:each="record : ${diseaseHistory.appointmentRecords}">
+        <span th:text="${record.appointmentDate}">Дата</span>
+        <span th:text="${record.appointmentTime}">Время</span>
+        <span th:text="${record.serviceName}">Услуга</span>
+    </li>
+</ul>
+
+<a href="/web/disease-history">Назад</a>

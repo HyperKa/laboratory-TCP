@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 */
 
+import com.example.demo.dto.AppointmentRecordDTO;
 import com.example.demo.dto.ClientDTO;
+import com.example.demo.entity.AppointmentRecord;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Role;
 import com.example.demo.repository.ClientRepository;
@@ -155,9 +157,13 @@ public class ClientService {
     }
 
     // Обновление клиента из DTO
-    public ClientDTO updateClientFromDTO(Long id, ClientDTO updatedDto) {
-        Client existingClient = clientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Client not found with ID: " + id));
+    public ClientDTO updateClientFromDTO(String login, ClientDTO updatedDto) {
+
+        if (login == null) {
+            throw new IllegalArgumentException("ID must not be null");
+        }
+        Client existingClient = clientRepository.findByLogin(login)
+                .orElseThrow(() -> new RuntimeException("Client not found with login: " + login));
 
         // Обновляем поля существующего клиента
         existingClient.setAge(updatedDto.getAge());
@@ -173,6 +179,19 @@ public class ClientService {
 
     public Optional<Client> findByLogin(String login) {
         return clientRepository.findByLogin(login);
+    }
+
+    public void updateClientByLogin(String username, ClientDTO clientDTO) {
+        Client client = clientRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Клиент не найден"));
+        client.setAge(clientDTO.getAge());
+        client.setGender(clientDTO.getGender());
+        client.setLastName(clientDTO.getLastName());
+        client.setFirstName(clientDTO.getFirstName());
+        client.setAddress(clientDTO.getAddress());
+        client.setPassport(clientDTO.getPassport());
+
+        clientRepository.save(client);
     }
 
 }

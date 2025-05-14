@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Создание записи</title></head>
+<body>
+<h1>Создать запись на приём</h1>
+<form th:action="@{/web/appointments}" th:object="${appointmentRecord}" method="post">
+    <label>Дата: <input type="date" th:field="*{appointmentDate}"/></label><br>
+    <label>Время: <input type="time" th:field="*{appointmentTime}"/></label><br>
+    <label>Доктор ID: <input type="number" th:field="*{doctorId}"/></label><br>
+    <label>Услуга: <input type="text" th:field="*{serviceName}"/></label><br>
+    <button type="submit">Сохранить</button>
+</form>
+</body>
+</html>
