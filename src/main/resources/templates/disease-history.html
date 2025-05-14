@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История болезни</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        .form-group { margin-bottom: 10px; }
+        input, textarea { width: 100%; padding: 5px; }
+        button { margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+<h2>История болезни</h2>
+
+<div id="createForm" style="display:none;">
+    <h3>Добавить запись</h3>
+    <div class="form-group">
+        <label>Фамилия врача:</label>
+        <input type="text" id="lastNameDoctor">
+    </div>
+    <div class="form-group">
+        <label>Имя врача:</label>
+        <input type="text" id="firstNameDoctor">
+    </div>
+    <div class="form-group">
+        <label>Профессия:</label>
+        <input type="text" id="profession">
+    </div>
+    <div class="form-group">
+        <label>ID врача:</label>
+        <input type="number" id="doctorId">
+    </div>
+    <div class="form-group">
+        <label>Дата начала:</label>
+        <input type="datetime-local" id="startDate">
+    </div>
+    <div class="form-group">
+        <label>Дата окончания:</label>
+        <input type="datetime-local" id="endDate">
+    </div>
+    <div class="form-group">
+        <label>Заболевание:</label>
+        <textarea id="disease"></textarea>
+    </div>
+    <button onclick="submitRecord()">Сохранить</button>
+</div>
+
+<table id="historyTable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Фамилия врача</th>
+        <th>Имя врача</th>
+        <th>Профессия</th>
+        <th>ID врача</th>
+        <th>Дата начала</th>
+        <th>Дата окончания</th>
+        <th>Заболевание</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<!-- Сообщение при отсутствии записей -->
+<div id="noRecordsMessage" style="display: none; margin-top: 20px;">
+    <p style="color: #d9534f; font-weight: bold;">
+        История болезни отсутствует.
+    </p>
+    <p>
+        Запись может добавить только врач. Если вы являетесь врачом, нажмите на кнопку ниже.
+    </p>
+    <button id="addRecordButton" onclick="window.location.href='/create-disease-history.html'" style="display: none; margin-top: 10px;">
+        Добавить запись
+    </button>
+</div>
+<script>
+    let userRoles = [];
+
+    // Попробуем получить роль из токена
+    const token = localStorage.getItem("jwtToken");
+
+    if (token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            userRoles = payload.authorities || [];
+        } catch (e) {
+            console.error("Не удалось декодировать токен");
+        }
+    }
+
+    const isDoctorOrAdmin = userRoles.some(role => role === 'ROLE_DOCTOR' || role === 'ROLE_ADMIN');
+
+    if (isDoctorOrAdmin) {
+        document.getElementById('createForm').style.display = 'block';
+    }
+
+    // Всегда загружаем историю болезни
+    loadRecords();
+
+    function loadRecords() {
+        fetch('/api/v1/disease-history/{id}', {
+            credentials: 'include'
+        })
+            .then(res => {
+                if (!res.ok && res.status === 403) {
+                    alert('Нет доступа к данным');
+                    return;
+                }
+                return res.json();
+            })
+            .then(records => {
+                const tbody = document.querySelector('#historyTable tbody');
+                const messageBox = document.getElementById('noRecordsMessage');
+                const addButton = document.getElementById('addRecordButton');
+
+                tbody.innerHTML = '';
+                messageBox.style.display = 'none';
+
+                if (!records || records.length === 0) {
+                    messageBox.style.display = 'block';
+                    if (isDoctorOrAdmin) {
+                        addButton.style.display = 'inline-block';
+                    }
+                    return;
+                }
+
+                records.forEach(rec => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                    <td>${rec.lastNameDoctor}</td>
+                    <td>${rec.firstNameDoctor}</td>
+                    <td>${rec.profession}</td>
+                    <td>${rec.doctorId}</td>
+                    <td>${formatDateTime(rec.startDate)}</td>
+                    <td>${formatDateTime(rec.endDate)}</td>
+                    <td>${rec.disease}</td>
+                    <td>
+                        ${isDoctorOrAdmin ? `<button onclick="editRecord(${rec.id})">Редактировать</button>
+                                             <button onclick="deleteRecord(${rec.id})">Удалить</button>` : ''}
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            });
+    }
+
+    function hasEditAccess() {
+        return userRoles.some(role => role === 'ROLE_DOCTOR' || role === 'ROLE_ADMIN');
+    }
+
+    function submitRecord() {
+        const dto = {
+            lastNameDoctor: document.getElementById('lastNameDoctor').value,
+            firstNameDoctor: document.getElementById('firstNameDoctor').value,
+            profession: document.getElementById('profession').value,
+            doctorId: parseInt(document.getElementById('doctorId').value),
+            startDate: new Date(document.getElementById('startDate').value).toISOString(),
+            endDate: new Date(document.getElementById('endDate').value).toISOString(),
+            disease: document.getElementById('disease').value
+        };
+
+        fetch('/api/v1/disease-history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dto),
+            credentials: 'include'
+        }).then(() => loadRecords());
+    }
+
+    function deleteRecord(id) {
+        if (!confirm("Удалить запись?")) return;
+        fetch(`/api/v1/disease-history/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        }).then(() => loadRecords());
+    }
+
+    function editRecord(id) {
+        window.location.href = `/edit-disease-history.html?id=${id}`;
+    }
+
+    function formatDateTime(dateTimeStr) {
+        const date = new Date(dateTimeStr);
+        return date.toLocaleString();
+    }
+</script>
+</body>
+</html>

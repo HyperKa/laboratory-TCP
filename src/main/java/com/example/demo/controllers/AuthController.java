@@ -1,5 +1,7 @@
 package com.example.demo.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
 import org.springframework.ui.Model;
 import com.example.demo.dto.*;
 import com.example.demo.entity.Admin;
@@ -45,11 +47,9 @@ public class AuthController {
 
 
 
-
-
-       // 🔐 Авторизация (общая)
+    // 🔐 Авторизация (общая)
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -58,9 +58,20 @@ public class AuthController {
         );
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
-        String token = jwtTokenService.generateToken(userDetails);
+        String token = jwtTokenService.generateToken(userDetails); // ⬅️ сначала генерируем токен
+
+        // Теперь создаём куку с токеном
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(24 * 60 * 60) // 1 день
+                .sameSite("Strict")
+                .build();
+        response.setHeader("Set-Cookie", cookie.toString());
+
         return ResponseEntity.ok(new JwtResponse(token));
     }
+
 
 
 
@@ -139,7 +150,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
+    /*
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -154,6 +165,36 @@ public class AuthController {
             }
         }
         return ResponseEntity.badRequest().body("Invalid token");
+    }
+
+     */
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(
+            @CookieValue(value = "jwt", required = false) String token,
+            HttpServletResponse response
+    ) {
+        if (token != null) {
+            try {
+                // Извлекаем дату истечения токена
+                LocalDateTime expiryDate = jwtTokenService.extractExpiration(token);
+                blacklistService.addToBlacklist(token, expiryDate);
+
+                // Удаляем cookie
+                ResponseCookie deleteCookie = ResponseCookie.from("jwt", "")
+                        .httpOnly(true)
+                        .path("/")
+                        .maxAge(0) // Удаляем куку
+                        .sameSite("Strict")
+                        .build();
+                response.setHeader("Set-Cookie", deleteCookie.toString());
+
+                return ResponseEntity.ok("Logged out successfully");
+            } catch (ExpiredJwtException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token already expired");
+            }
+        }
+        return ResponseEntity.badRequest().body("No token found in cookies");
     }
 
 }

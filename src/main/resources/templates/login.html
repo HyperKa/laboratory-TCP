@@ -120,7 +120,7 @@
 
 <!-- Навигационная панель -->
 <div class="navbar">
-    <a class="nav-button" href="/"><i class="fas fa-home"></i> Главная</a>
+    <a class="nav-button" href="/static"><i class="fas fa-home"></i> Главная</a>
     <a class="nav-button" href="#" onclick="goToProfile()"><i class="fas fa-user"></i> Профиль</a>
 </div>
 
@@ -142,19 +142,16 @@
     <div class="register-link">
         <p>Нет аккаунта? <a href="register-client.html">Зарегистрироваться</a></p>
     </div>
-</div>
-
-<script>
-    // Если токен уже есть — перенаправляем в меню
+</div><script>
+    // Если токен уже есть — сразу переходим к истории болезни
     if (localStorage.getItem("jwtToken")) {
-        window.location.href = "client-records.html";
+        window.location.href = "/api/v1/disease-history"; // Можно указать ID, если он известен
     }
+
     localStorage.removeItem('jwtToken');
+
     async function login(event) {
         event.preventDefault();
-
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
 
         try {
             const response = await fetch('http://localhost:8080/auth/login', {
@@ -162,7 +159,11 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value
+                }),
+                credentials: 'include'
             });
 
             if (!response.ok) {
@@ -172,8 +173,28 @@
             const data = await response.json();
             localStorage.setItem("jwtToken", data.token);
 
-            // Перенаправление на страницу записей
-            window.location.href = "client-records.html";
+            // Получаем список историй болезней пользователя
+            const historyResponse = await fetch('http://localhost:8080/api/v1/disease-history', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${data.token}`
+                }
+            });
+
+            if (!historyResponse.ok) {
+                throw new Error("Не удалось загрузить историю болезни");
+            }
+
+            const records = await historyResponse.json();
+
+            if (records.length > 0) {
+                const lastRecordId = records[records.length - 1].id; // Берём последнюю запись
+                window.location.href = `/api/v1/disease-history/${lastRecordId}`;
+            } else {
+                alert("История болезни пуста");
+                window.location.href = "/static"; // Резервная страница
+            }
 
         } catch (error) {
             document.getElementById("error-message").textContent = "Неверный логин или пароль.";
@@ -182,12 +203,27 @@
 
     function goToProfile() {
         if (localStorage.getItem("jwtToken")) {
-            window.location.href = "client-menu.html";
+            // Переход к последней записи при нажатии на профиль
+            fetch('http://localhost:8080/api/v1/disease-history', {
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("jwtToken")}`
+                }
+            })
+                .then(res => res.json())
+                .then(records => {
+                    if (records.length > 0) {
+                        const lastRecordId = records[records.length - 1].id;
+                        window.location.href = `/api/v1/disease-history/${lastRecordId}`;
+                    } else {
+                        alert("История болезни пуста");
+                        window.location.href = "/static";
+                    }
+                });
         } else {
             window.location.href = "login.html";
         }
     }
 </script>
-
 </body>
 </html>
