@@ -142,13 +142,12 @@
     <div class="register-link">
         <p>Нет аккаунта? <a href="register-client.html">Зарегистрироваться</a></p>
     </div>
-</div><script>
-    // Если токен уже есть — сразу переходим к истории болезни
+</div>
+<script>
+    // Если токен уже есть — сразу переходим к профилю
     if (localStorage.getItem("jwtToken")) {
-        window.location.href = "/api/v1/disease-history"; // Можно указать ID, если он известен
+        fetchCurrentUserProfile();
     }
-
-    localStorage.removeItem('jwtToken');
 
     async function login(event) {
         event.preventDefault();
@@ -173,53 +172,41 @@
             const data = await response.json();
             localStorage.setItem("jwtToken", data.token);
 
-            // Получаем список историй болезней пользователя
-            const historyResponse = await fetch('http://localhost:8080/api/v1/disease-history', {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Authorization': `Bearer ${data.token}`
-                }
-            });
-
-            if (!historyResponse.ok) {
-                throw new Error("Не удалось загрузить историю болезни");
-            }
-
-            const records = await historyResponse.json();
-
-            if (records.length > 0) {
-                const lastRecordId = records[records.length - 1].id; // Берём последнюю запись
-                window.location.href = `/api/v1/disease-history/${lastRecordId}`;
-            } else {
-                alert("История болезни пуста");
-                window.location.href = "/static"; // Резервная страница
-            }
+            // Получаем данные пользователя и переходим на профиль
+            await fetchCurrentUserProfile();
 
         } catch (error) {
             document.getElementById("error-message").textContent = "Неверный логин или пароль.";
+            console.error(error);
+        }
+    }
+
+    async function fetchCurrentUserProfile() {
+        try {
+            const response = await fetch('/api/v1/clients/me', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Ошибка получения данных пользователя");
+            }
+
+            const userData = await response.json();
+
+            // Перенаправляем на HTML-страницу профиля
+            window.location.href = `/client-details?id=${userData.id}`;
+
+        } catch (error) {
+            console.error("Ошибка при получении профиля:", error);
+            window.location.href = "login.html";
         }
     }
 
     function goToProfile() {
         if (localStorage.getItem("jwtToken")) {
-            // Переход к последней записи при нажатии на профиль
-            fetch('http://localhost:8080/api/v1/disease-history', {
-                credentials: 'include',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("jwtToken")}`
-                }
-            })
-                .then(res => res.json())
-                .then(records => {
-                    if (records.length > 0) {
-                        const lastRecordId = records[records.length - 1].id;
-                        window.location.href = `/api/v1/disease-history/${lastRecordId}`;
-                    } else {
-                        alert("История болезни пуста");
-                        window.location.href = "/static";
-                    }
-                });
+            fetchCurrentUserProfile();
         } else {
             window.location.href = "login.html";
         }

@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +23,16 @@ public class ClientController {
 
     @Autowired
     private ClientService clientService;
+
+
+    // Получение данных текущего авторизованного клиента
+    @GetMapping("/me")
+    public ResponseEntity<ClientDTO> getCurrentClient(Authentication authentication) {
+        String username = authentication.getName();
+        return clientService.findByLogin(username)
+                .map(client -> ResponseEntity.ok(clientService.convertToDTO(client)))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 
     // CREATE
     @PostMapping

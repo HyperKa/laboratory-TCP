@@ -4,6 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class WebController {
@@ -27,8 +28,26 @@ public class WebController {
     }
 
    */
+    /*
+    @GetMapping("/api/v1/clients/{id}")
+    public String showClientDetails(@PathVariable Long id) {
+        return "client-details"; // откроет client-details.html
 
 
+    }
+
+
+    @GetMapping("/api/v1/clients/me")
+    public String showClientDetails() {
+        return "client-details"; // client-details.html
+    }
+    */
+
+    // Отображение HTML страницы профиля
+    @GetMapping("/client-details")
+    public ModelAndView showClientProfile() {
+        return new ModelAndView("client-details");
+    }
     @GetMapping("/disease-history/{recordId}")
     public String showRecordById(@PathVariable Long recordId) {
         return "disease-history"; // открывает, но только если через поисковую строку угадывать id доделать!!!!!!!!!!!

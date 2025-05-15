@@ -147,6 +147,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/register/admin").permitAll()
                         .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
+                        .requestMatchers("/api/v1/clients/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/analysis-results/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/appointment-records/{recordId}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль клиента</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background-color: #f4f6f8;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Профиль клиента</h2>
+
+   <!-- <label>ID:</label>
+    <input type="text" id="clientId" readonly>-->
+
+    <label>Имя:</label>
+    <input type="text" id="firstName">
+
+    <label>Фамилия:</label>
+    <input type="text" id="lastName">
+
+    <label>Логин:</label>
+    <input type="text" id="login" readonly>
+
+    <label>Пароль:</label>
+    <input type="password" id="password" placeholder="Введите новый пароль">
+
+    <label>Повторите пароль:</label>
+    <input type="password" id="confirmPassword">
+
+    <button onclick="updateClient()">Сохранить изменения</button>
+    <button onclick="changePassword()">Сменить пароль</button>
+
+    <div id="error"></div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Запрашиваем данные ТЕКУЩЕГО пользователя (без ID)
+        fetch('/api/v1/clients/me')  // Изменили endpoint
+            .then(res => {
+                if (!res.ok) throw new Error("Ошибка получения данных");
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('clientId').value = data.id;
+                document.getElementById('firstName').value = data.firstName;
+                document.getElementById('lastName').value = data.lastName;
+                document.getElementById('login').value = data.login;
+
+                window.clientId = data.id; // Сохраняем ID для других запросов
+            })
+            .catch(err => {
+                document.body.innerHTML = "<p>Не удалось загрузить профиль. Возможно, вы не авторизованы.</p>";
+                console.error(err);
+            });
+    });
+
+    // Обновление данных клиента
+    function updateClient() {
+        const clientId = document.getElementById('clientId').value;
+        const updatedData = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            login: document.getElementById('login').value,
+            password: document.getElementById('password').value
+        };
+
+        fetch(`/api/v1/clients/${clientId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Ошибка сохранения");
+                alert("Данные успешно обновлены.");
+            })
+            .catch(err => {
+                document.getElementById('error').innerText = "Не удалось сохранить изменения.";
+                console.error(err);
+            });
+    }
+
+    // Смена пароля
+    function changePassword() {
+        const clientId = document.getElementById('clientId').value;
+        const newPassword = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            document.getElementById('error').innerText = "Пароли не совпадают.";
+            return;
+        }
+
+        const changePasswordRequest = {
+            currentPassword: "", // если нужно — добавь поле ввода
+            newPassword: newPassword
+        };
+
+        fetch(`/api/v1/clients/${clientId}/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(changePasswordRequest)
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Ошибка смены пароля");
+                alert("Пароль успешно изменён.");
+            })
+            .catch(err => {
+                document.getElementById('error').innerText = "Не удалось сменить пароль.";
+                console.error(err);
+            });
+    }
+</script>
+
+</body>
+</html>
