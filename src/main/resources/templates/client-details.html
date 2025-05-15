@@ -46,10 +46,33 @@
             color: white;
             border-radius: 5px;
             cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .nav-button {
+            background-color: #28a745;
+        }
+
+        .logout-button {
+            background-color: #dc3545;
         }
 
         button:hover {
             background-color: #0056b3;
+        }
+
+        .nav-button:hover {
+            background-color: #218838;
+        }
+
+        .logout-button:hover {
+            background-color: #c82333;
         }
 
         #error {
@@ -62,9 +85,6 @@
 
 <div class="container">
     <h2>Профиль клиента</h2>
-
-   <!-- <label>ID:</label>
-    <input type="text" id="clientId" readonly>-->
 
     <label>Имя:</label>
     <input type="text" id="firstName">
@@ -81,36 +101,56 @@
     <label>Повторите пароль:</label>
     <input type="password" id="confirmPassword">
 
-    <button onclick="updateClient()">Сохранить изменения</button>
-    <button onclick="changePassword()">Сменить пароль</button>
+    <div>
+        <button onclick="updateClient()">Сохранить изменения</button>
+        <button onclick="changePassword()">Сменить пароль</button>
+        <button class="logout-button" onclick="logout()">Выйти из аккаунта</button>
+    </div>
+
+    <div class="nav-buttons">
+        <button class="nav-button" onclick="navigateToDiseaseHistory()">История болезней</button>
+        <button class="nav-button" onclick="navigateToRecords()">Мои записи</button>
+    </div>
 
     <div id="error"></div>
 </div>
+
 <script>
+    // Глобальная переменная для хранения ID клиента
+    let currentClientId = null;
+
     document.addEventListener("DOMContentLoaded", function () {
-        // Запрашиваем данные ТЕКУЩЕГО пользователя (без ID)
-        fetch('/api/v1/clients/me')  // Изменили endpoint
+        // Проверяем наличие токена
+        if (!localStorage.getItem("jwtToken")) {
+            window.location.href = "/login.html";
+            return;
+        }
+
+        fetch('/api/v1/clients/me', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")
+            }
+        })
             .then(res => {
                 if (!res.ok) throw new Error("Ошибка получения данных");
                 return res.json();
             })
             .then(data => {
-                document.getElementById('clientId').value = data.id;
-                document.getElementById('firstName').value = data.firstName;
-                document.getElementById('lastName').value = data.lastName;
-                document.getElementById('login').value = data.login;
-
-                window.clientId = data.id; // Сохраняем ID для других запросов
+                currentClientId = data.id;
+                document.getElementById('firstName').value = data.firstName || '';
+                document.getElementById('lastName').value = data.lastName || '';
+                document.getElementById('login').value = data.login || '';
             })
             .catch(err => {
-                document.body.innerHTML = "<p>Не удалось загрузить профиль. Возможно, вы не авторизованы.</p>";
+                document.getElementById('error').innerText = "Не удалось загрузить профиль. Возможно, вы не авторизованы.";
                 console.error(err);
+                setTimeout(() => window.location.href = "/login.html", 2000);
             });
     });
 
-    // Обновление данных клиента
     function updateClient() {
-        const clientId = document.getElementById('clientId').value;
+        if (!currentClientId) return;
+
         const updatedData = {
             firstName: document.getElementById('firstName').value,
             lastName: document.getElementById('lastName').value,
@@ -118,10 +158,11 @@
             password: document.getElementById('password').value
         };
 
-        fetch(`/api/v1/clients/${clientId}`, {
+        fetch(`/api/v1/clients/${currentClientId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")
             },
             body: JSON.stringify(updatedData)
         })
@@ -135,9 +176,9 @@
             });
     }
 
-    // Смена пароля
     function changePassword() {
-        const clientId = document.getElementById('clientId').value;
+        if (!currentClientId) return;
+
         const newPassword = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -146,17 +187,13 @@
             return;
         }
 
-        const changePasswordRequest = {
-            currentPassword: "", // если нужно — добавь поле ввода
-            newPassword: newPassword
-        };
-
-        fetch(`/api/v1/clients/${clientId}/change-password`, {
+        fetch(`/api/v1/clients/${currentClientId}/change-password`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")
             },
-            body: JSON.stringify(changePasswordRequest)
+            body: JSON.stringify({ newPassword })
         })
             .then(res => {
                 if (!res.ok) throw new Error("Ошибка смены пароля");
@@ -167,7 +204,42 @@
                 console.error(err);
             });
     }
-</script>
 
+    function navigateToDiseaseHistory() {
+        if (currentClientId) {
+            window.location.href = `/disease-history?clientId=${currentClientId}`;
+        } else {
+            alert("Не удалось определить ID клиента");
+        }
+    }
+
+    function navigateToRecords() {
+        if (currentClientId) {
+            window.location.href = `/records?clientId=${currentClientId}`;
+        } else {
+            alert("Не удалось определить ID клиента");
+        }
+    }
+
+    function logout() {
+        // Можно добавить запрос на сервер для инвалидации токена
+        fetch('/api/v1/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")
+            }
+        })
+            .then(() => {
+                // В любом случае очищаем localStorage и перенаправляем
+                localStorage.removeItem("jwtToken");
+                window.location.href = "/login.html";
+            })
+            .catch(() => {
+                // Даже если запрос не удался, всё равно выходим
+                localStorage.removeItem("jwtToken");
+                window.location.href = "/login.html";
+            });
+    }
+</script>
 </body>
 </html>

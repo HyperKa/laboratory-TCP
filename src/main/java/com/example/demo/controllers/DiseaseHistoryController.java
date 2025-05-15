@@ -39,6 +39,7 @@ public class DiseaseHistoryController {
     }
     */
 
+
     @PostMapping
     public ResponseEntity<DiseaseHistoryDTO> createDiseaseHistory(@RequestBody DiseaseHistoryDTO dto) {
         DiseaseHistory createdRecord = diseaseHistoryService.createDiseaseHistoryFromDTO(dto);

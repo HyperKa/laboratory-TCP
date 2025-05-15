@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Записи на приём</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f6f8;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            margin-right: 10px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        #createForm {
+            display: none;
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        #noRecordsMessage {
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Записи на приём</h2>
+
+<!-- Форма добавления записи (видна только для врача и админа) -->
+<div id="createForm">
+    <h3>Добавить запись</h3>
+    <div class="form-group">
+        <label>Имя клиента:</label>
+        <input type="text" id="clientName" required>
+    </div>
+    <div class="form-group">
+        <label>Фамилия клиента:</label>
+        <input type="text" id="clientSurname" required>
+    </div>
+    <div class="form-group">
+        <label>ID врача:</label>
+        <input type="number" id="doctorId" required>
+    </div>
+    <div class="form-group">
+        <label>Дата приёма:</label>
+        <input type="date" id="appointmentDate" required>
+    </div>
+    <div class="form-group">
+        <label>Время приёма:</label>
+        <input type="time" id="appointmentTime" required>
+    </div>
+    <div class="form-group">
+        <label>Услуга:</label>
+        <input type="text" id="serviceName" required>
+    </div>
+    <button onclick="submitRecord()">Сохранить</button>
+</div>
+
+<!-- Сообщение об отсутствии записей -->
+<div id="noRecordsMessage">Нет записей на приём</div>
+
+<!-- Таблица записей -->
+<table id="recordsTable" style="display: none;">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Клиент</th>
+        <th>Доктор</th>
+        <th>Дата приёма</th>
+        <th>Время приёма</th>
+        <th>Услуга</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    // Получаем токен (убедитесь, что ключ совпадает с тем, что используется при сохранении)
+    // Обернем логику в функцию
+    function initializeApp() {
+        const token = localStorage.getItem('jwtToken');
+        let userRoles = [];
+        let currentUserId = null;
+
+        if (!token) {
+            console.error("Токен не найден");
+            window.location.href = "/login.html";
+            return; // Корректный return внутри функции
+        }
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            currentUserId = parseInt(payload.sub || payload.userId || payload.id, 10);
+            userRoles = Array.isArray(payload.authorities)
+                ? payload.authorities
+                : (payload.authorities ? [payload.authorities] : []);
+
+            console.log("Текущий пользователь:", {
+                id: currentUserId,
+                roles: userRoles
+            });
+
+        } catch (e) {
+            console.error("Ошибка декодирования токена:", e);
+            window.location.href = "/login.html";
+            return; // Теперь это внутри функции
+        }
+
+        // Проверяем наличие нужных ролей
+        const isClient = userRoles.includes('ROLE_CLIENT');
+        const isDoctor = userRoles.includes('ROLE_DOCTOR');
+        const isAdmin = userRoles.includes('ROLE_ADMIN');
+
+        // Показываем форму создания только для врачей и админов
+        if (isDoctor || isAdmin) {
+            document.getElementById('createForm').style.display = 'block';
+        }
+
+        // Загружаем записи
+        loadRecords();
+    }
+
+    // Вызываем функцию инициализации при загрузке страницы
+    document.addEventListener('DOMContentLoaded', initializeApp);
+    // Загружаем записи с учетом роли пользователя
+    function loadRecords() {
+        // Формируем URL в зависимости от роли
+        let apiUrl = '/api/v1/appointment-records';
+        if (isClient) {
+            apiUrl = `/api/v1/appointment-records/client/${currentUserId}`;
+        } else if (isDoctor) {
+            apiUrl = `/api/v1/appointment-records/doctor/${currentUserId}`;
+        }
+
+        fetch(apiUrl, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(res => {
+                if (res.status === 403) {
+                    throw new Error(`Доступ запрещен. Роли пользователя: ${userRoles.join(', ')}`);
+                }
+                if (!res.ok) {
+                    throw new Error(`Ошибка сервера: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(records => {
+                updateRecordsView(records);
+            })
+            .catch(error => {
+                console.error("Ошибка загрузки записей:", error);
+                document.getElementById('noRecordsMessage').textContent =
+                    `Ошибка: ${error.message}. Пожалуйста, войдите снова.`;
+                document.getElementById('noRecordsMessage').style.display = 'block';
+                document.getElementById('recordsTable').style.display = 'none';
+
+                // Перенаправляем на страницу входа при ошибке доступа
+                if (error.message.includes('Доступ запрещен')) {
+                    setTimeout(() => window.location.href = "/login.html", 2000);
+                }
+            });
+    }
+
+    // Остальные функции остаются без изменений
+    function updateRecordsView(records) {
+        const tbody = document.querySelector('#recordsTable tbody');
+        const messageBox = document.getElementById('noRecordsMessage');
+        tbody.innerHTML = '';
+
+        // Фильтрация записей в зависимости от роли
+        let filteredRecords = records;
+
+        if (userRoles.includes('ROLE_CLIENT')) {
+            filteredRecords = records.filter(rec => rec.client?.id === currentUserId);
+        } else if (userRoles.includes('ROLE_DOCTOR')) {
+            filteredRecords = records.filter(rec => rec.doctor?.id === currentUserId);
+        }
+
+        if (!filteredRecords || filteredRecords.length === 0) {
+            messageBox.textContent = 'Нет записей на приём';
+            messageBox.style.display = 'block';
+            document.getElementById('recordsTable').style.display = 'none';
+            return;
+        }
+
+        messageBox.style.display = 'none';
+        document.getElementById('recordsTable').style.display = 'table';
+
+        filteredRecords.forEach(rec => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+            <td>${rec.id}</td>
+            <td>${rec.client?.firstName || ''} ${rec.client?.lastName || ''}</td>
+            <td>${rec.doctor?.firstName || ''} ${rec.doctor?.lastName || ''}</td>
+            <td>${rec.appointmentDate || ''}</td>
+            <td>${rec.appointmentTime || ''}</td>
+            <td>${rec.serviceName || ''}</td>
+            <td>
+                ${hasEditAccess(rec) ? `
+                    <button onclick="editRecord(${rec.id})">Редактировать</button>
+                    <button onclick="deleteRecord(${rec.id})">Удалить</button>
+                ` : ''}
+            </td>
+        `;
+            tbody.appendChild(tr);
+        });
+    }
+    function hasEditAccess(record) {
+        if (userRoles.includes('ROLE_DOCTOR')) {
+            return record.doctor?.id === currentUserId;
+        }
+        return userRoles.includes('ROLE_ADMIN');
+    }
+    // Функция создания новой записи
+    function submitRecord() {
+        if (!isDoctorOrAdmin) {
+            alert('Только врачи и администраторы могут создавать записи');
+            return;
+        }
+
+        const clientName = document.getElementById('clientName').value.trim();
+        const clientSurname = document.getElementById('clientSurname').value.trim();
+        const doctorId = parseInt(document.getElementById('doctorId').value);
+        const appointmentDate = document.getElementById('appointmentDate').value;
+        const appointmentTime = document.getElementById('appointmentTime').value;
+        const serviceName = document.getElementById('serviceName').value.trim();
+
+        // Валидация данных
+        if (!clientName || !clientSurname || isNaN(doctorId) || !appointmentDate || !appointmentTime || !serviceName) {
+            alert('Пожалуйста, заполните все поля корректно');
+            return;
+        }
+
+        const newRecord = {
+            clientName,
+            clientSurname,
+            doctorId,
+            appointmentDate,
+            appointmentTime,
+            serviceName
+        };
+
+        fetch('/api/v1/appointment-records', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(newRecord)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message || 'Ошибка создания записи'); });
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert('Запись успешно создана');
+                // Очищаем форму
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientSurname').value = '';
+                document.getElementById('doctorId').value = '';
+                document.getElementById('appointmentDate').value = '';
+                document.getElementById('appointmentTime').value = '';
+                document.getElementById('serviceName').value = '';
+                // Обновляем список записей
+                loadRecords();
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert(`Ошибка при создании записи: ${error.message}`);
+            });
+    }
+
+    // Функция удаления записи
+    function deleteRecord(id) {
+        if (!confirm('Вы уверены, что хотите удалить эту запись?')) {
+            return;
+        }
+
+        fetch(`/api/v1/appointment-records/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка удаления записи');
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert('Запись успешно удалена');
+                loadRecords();
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert(`Ошибка при удалении записи: ${error.message}`);
+            });
+    }
+
+    // Функция редактирования записи
+    function editRecord(id) {
+        // Находим запись в таблице
+        const recordRow = document.querySelector(`tr[data-record-id="${id}"]`);
+        if (!recordRow) return;
+
+        // Получаем текущие значения
+        const clientName = recordRow.querySelector('.client-name').textContent;
+        const clientSurname = recordRow.querySelector('.client-surname').textContent;
+        const doctorName = recordRow.querySelector('.doctor-name').textContent;
+        const appointmentDate = recordRow.querySelector('.appointment-date').textContent;
+        const appointmentTime = recordRow.querySelector('.appointment-time').textContent;
+        const serviceName = recordRow.querySelector('.service-name').textContent;
+
+        // Создаем форму редактирования
+        const editForm = document.createElement('div');
+        editForm.innerHTML = `
+        <h3>Редактирование записи</h3>
+        <div class="form-group">
+            <label>Имя клиента:</label>
+            <input type="text" id="editClientName" value="${clientName}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Фамилия клиента:</label>
+            <input type="text" id="editClientSurname" value="${clientSurname}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>ID врача:</label>
+            <input type="number" id="editDoctorId" value="${doctorName.split(' ')[0]}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Дата приёма:</label>
+            <input type="date" id="editAppointmentDate" value="${appointmentDate}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Время приёма:</label>
+            <input type="time" id="editAppointmentTime" value="${appointmentTime}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Услуга:</label>
+            <input type="text" id="editServiceName" value="${serviceName}" class="form-control">
+        </div>
+        <button onclick="saveEditedRecord(${id})" class="btn btn-primary">Сохранить</button>
+        <button onclick="cancelEdit()" class="btn btn-secondary">Отмена</button>
+    `;
+
+        // Заменяем строку таблицы на форму редактирования
+        recordRow.innerHTML = '';
+        recordRow.appendChild(editForm);
+    }
+
+    // Функция сохранения отредактированной записи
+    function saveEditedRecord(id) {
+        const editedRecord = {
+            clientName: document.getElementById('editClientName').value.trim(),
+            clientSurname: document.getElementById('editClientSurname').value.trim(),
+            doctorId: parseInt(document.getElementById('editDoctorId').value),
+            appointmentDate: document.getElementById('editAppointmentDate').value,
+            appointmentTime: document.getElementById('editAppointmentTime').value,
+            serviceName: document.getElementById('editServiceName').value.trim()
+        };
+
+        // Валидация данных
+        if (!editedRecord.clientName || !editedRecord.clientSurname || isNaN(editedRecord.doctorId) ||
+            !editedRecord.appointmentDate || !editedRecord.appointmentTime || !editedRecord.serviceName) {
+            alert('Пожалуйста, заполните все поля корректно');
+            return;
+        }
+
+        fetch(`/api/v1/appointment-records/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(editedRecord)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка сохранения изменений');
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert('Изменения успешно сохранены');
+                loadRecords();
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert(`Ошибка при сохранении изменений: ${error.message}`);
+            });
+    }
+
+    // Функция отмены редактирования
+    function cancelEdit() {
+        loadRecords(); // Просто перезагружаем список записей
+    }
+</script>
+</body>
+</html>

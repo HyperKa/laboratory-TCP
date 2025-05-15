@@ -40,6 +40,9 @@ public class DiseaseHistoryService {
     @Autowired
     private AppointmentRecordRepository appointmentRecordRepository;
 
+
+
+
     // Получение всех записей истории болезни
     public Iterable<DiseaseHistory> getAllRecords() {
         return diseaseHistoryRepository.findAll();

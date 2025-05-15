@@ -48,11 +48,16 @@ public class WebController {
     public ModelAndView showClientProfile() {
         return new ModelAndView("client-details");
     }
-    @GetMapping("/disease-history/{recordId}")
-    public String showRecordById(@PathVariable Long recordId) {
-        return "disease-history"; // открывает, но только если через поисковую строку угадывать id доделать!!!!!!!!!!!
+    @GetMapping("/disease-history")
+    public String showRecordById() {
+        return "disease-history";
+    }
 
-    }    @RequestMapping("/favourite_recipes")
+    @GetMapping("/records")
+    public String showRecords() {
+        return "records";
+    }
+    @RequestMapping("/favourite_recipes")
     public String showFavRecipes() {
         return "favourite_recipes"; // thymeleaf найдет main.html
     }
