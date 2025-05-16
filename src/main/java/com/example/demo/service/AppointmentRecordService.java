@@ -36,6 +36,13 @@ public class AppointmentRecordService {
     @Autowired
     private DiseaseHistoryRepository diseaseHistoryRepository;
 
+    // Получение всех записей клиента по его ID
+    public List<AppointmentRecordDTO> findRecordsByClientId(Long clientId) {
+        return appointmentRecordRepository.findByClient_Id(clientId).stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
     // Преобразование Entity -> DTO
     public AppointmentRecordDTO convertToDTO(AppointmentRecord record) {
         return new AppointmentRecordDTO(record);

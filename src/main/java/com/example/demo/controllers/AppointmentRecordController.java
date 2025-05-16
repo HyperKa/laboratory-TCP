@@ -78,8 +78,10 @@ import com.example.demo.repository.ClientRepository;
 import com.example.demo.repository.DiseaseHistoryRepository;
 import com.example.demo.repository.DoctorRepository;
 import com.example.demo.service.AppointmentRecordService;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -97,6 +99,15 @@ public class AppointmentRecordController {
         return ResponseEntity.ok(appointmentRecordService.getAllRecordsAsDTO());
     }
 
+    // 🔥 Получить все записи клиента по его ID из токена
+    @GetMapping("/my-records")
+    public ResponseEntity<List<AppointmentRecordDTO>> getMyRecords(Authentication authentication) {
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        Long userId = Long.valueOf(jwt.getClaim("sub")); // sub — это ID пользователя
+
+        List<AppointmentRecordDTO> records = appointmentRecordService.findRecordsByClientId(userId);
+        return ResponseEntity.ok(records);
+    }
     // Получение записи по ID
     @GetMapping("/{recordId}")
     public ResponseEntity<AppointmentRecordDTO> getRecordById(@PathVariable Integer recordId) {
