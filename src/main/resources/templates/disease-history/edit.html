@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${diseaseHistory.recordId != null} ? 'Редактирование' : 'Создание'">Форма</title>
-
+    <link rel="stylesheet" th:href="@{/css/Style_something.css}" href="../../css/styles.css">
 </head>
 <body>
 
@@ -30,6 +30,9 @@
     <label>ID клиента: <input type="number" th:field="*{clientId}" required /></label><br/>
 
     <button type="submit">Сохранить</button>
+    <div style="margin-top: 20px; text-align: left;">
+        <a href="/client/dashboard" class="button" style="text-decoration: none;">Возвращение на основную страницу</a>
+    </div>
 </form>
 
 </body>

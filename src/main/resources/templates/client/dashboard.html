@@ -4,6 +4,11 @@
     <th:block th:fragment="content">
 
         <h1>Добро пожаловать в личный кабинет</h1>
+        <div class="logout-container">
+            <button id="logoutBtn">Выйти</button>
+            <script src="/js/logout.js"></script>
+        </div>
+
 
         <div th:if="${успешно}" class="alert success">
             <p th:text="${успешно}">Профиль обновлен</p>
@@ -190,7 +195,7 @@
         <h2 th:if="${isAdminOrDoctor}">Все результаты анализов</h2>
         <th:block th:replace="~{analysis-results/list :: content}"></th:block>
 
-        <a th:if="${isAdminOrDoctor}" href="#" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
+        <a th:if="${isAdminOrDoctor}" th:href="@{'/web/analysis-results/new'}" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
 
         <hr/>
 

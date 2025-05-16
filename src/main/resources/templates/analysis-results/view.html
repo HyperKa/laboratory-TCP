@@ -2,12 +2,14 @@
 <html html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Просмотр результата анализа</title>
+    <link rel="stylesheet" th:href="@{/css/Style_something.css}" href="../../css/styles.css">
 </head>
 <body>
-<h1>Просмотр результата анализа</h1>
+<h2>Просмотр результата анализа</h2>
 <p>Файл исследования: <span th:text="${analysisResults.researchFile}">file.pdf</span></p>
 <p>Дата анализа: <span th:text="${analysisResults.analysisDate}">2025-05-01</span></p>
-<a th:href="@{/client/dashboard}">Назад</a>
+<div style="margin-top: 20px; text-align: left;">
+    <a href="/client/dashboard" class="button" style="text-decoration: none;">Возвращение на основную страницу</a>
+</div>
 </body>
 </html>

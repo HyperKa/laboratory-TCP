@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><title>Создание записи</title></head>
+<head> <link rel="stylesheet" th:href="@{/css/Style_something.css}" href="../../css/styles.css">
+    <title>Создание записи</title></head>
 <body>
 <h1>Создать запись на приём</h1>
 <form th:action="@{'/web/appointments/' + ${appointmentRecord.recordId}}" th:object="${appointmentRecord}" method="post">
@@ -9,6 +10,9 @@
     <label>Доктор ID: <input type="number" th:field="*{doctorId}"/></label><br>
     <label>Услуга: <input type="text" th:field="*{serviceName}"/></label><br>
     <button type="submit">Сохранить</button>
+    <div style="margin-top: 20px; text-align: left;">
+        <a href="/client/dashboard" class="button" style="text-decoration: none;">Возвращение на основную страницу</a>
+    </div>
 </form>
 </body>
 </html>
