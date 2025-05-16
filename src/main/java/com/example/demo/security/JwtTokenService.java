@@ -33,7 +33,7 @@ public class JwtTokenService {
         System.out.println("Generated token for user: " + userDetails.getUsername()
         + ", Roles: " + userDetails.getAuthorities());
 
-        return createToken(claims, userDetails.getUsername());
+        return createToken(claims, userDetails.getUsername());  // передаю roles + 'ROLE', login
     }
 
     private String createToken(Map<String, Object> claims, String subject) {

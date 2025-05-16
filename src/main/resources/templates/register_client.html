@@ -1,37 +1,40 @@
 <!DOCTYPE html>
-<!--  <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::main})}">  -->
-<html xmlns:th="http://www.thymeleaf.org" th:replace="layout/base :: content">
-<main>
-    <h2>Регистрация клиента</h2>
-    <form th:action="@{/auth/register/client}" method="post" class="form">
-        <label for="firstName">Имя:</label>
-        <input type="text" id="firstName" name="firstName" required>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{layout/base :: layout(~{::content})}">
+    <th:block th:fragment="content">
+        <main class="form-container">
+            <h2>Регистрация клиента</h2>
+            <form th:action="@{/auth/register/client}" method="post" class="form" th:object="${clientDTO}">
+                <label for="firstName">Имя:</label>
+                <input type="text" id="firstName" name="firstName" th:field="*{firstName}" required>
 
-        <label for="lastName">Фамилия:</label>
-        <input type="text" id="lastName" name="lastName" required>
+                <label for="lastName">Фамилия:</label>
+                <input type="text" id="lastName" name="lastName" th:field="*{lastName}" required>
 
-        <label for="age">Возраст:</label>
-        <input type="number" id="age" name="age" required>
+                <label for="age">Возраст:</label>
+                <input type="number" id="age" name="age" th:field="*{age}" required>
 
-        <label for="gender">Пол:</label>
-        <select id="gender" name="gender" required>
-            <option value="MALE">Мужской</option>
-            <option value="FEMALE">Женский</option>
-        </select>
+                <label for="gender">Пол:</label>
+                <select id="gender" name="gender" th:field="*{gender}" required>
+                    <option value="">-- Выберите пол --</option>
+                    <option value="MALE">Мужской</option>
+                    <option value="FEMALE">Женский</option>
+                </select>
 
-        <label for="address">Адрес:</label>
-        <input type="text" id="address" name="address">
+                <label for="address">Адрес:</label>
+                <input type="text" id="address" name="address" th:field="*{address}">
 
-        <label for="passport">Паспорт:</label>
-        <input type="text" id="passport" name="passport" required>
+                <label for="passport">Паспорт:</label>
+                <input type="text" id="passport" name="passport" th:field="*{passport}" required>
 
-        <label for="login">Логин:</label>
-        <input type="text" id="login" name="login" required>
+                <label for="login">Логин:</label>
+                <input type="text" id="login" name="login" th:field="*{login}" required>
 
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" name="password" required>
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" th:field="*{password}" required>
 
-        <button type="submit" class="button">Зарегистрироваться</button>
-    </form>
-</main>
-</html>
+                <button type="submit" class="button">Зарегистрироваться</button>
+            </form>
+        </main>
+    </th:block>
+</th:block>

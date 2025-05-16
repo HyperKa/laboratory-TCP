@@ -83,9 +83,9 @@ public class AuthController {
             jwtCookie.setMaxAge(60 * 60 * 24);
             response.addCookie(jwtCookie);
 
-            return "redirect:/client/dashboard"; // или другой маршрут после успешного входа
+            return "redirect:/client/dashboard";
         } catch (Exception e) {
-            return "redirect:/auth/login?error=invalid_credentials";
+            return "redirect:/auth/login?error=invalid_credentials";  // сука и тут ошибку при использовании уже занятого логина нифига не понять
         }
     }
 

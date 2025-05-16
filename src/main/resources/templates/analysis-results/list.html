@@ -7,14 +7,14 @@
         <tr>
             <th>Дата анализа</th>
             <th>Файл исследования</th>
-            <th>Действия</th>
+            <th th:if="${isAdminOrDoctor}">Действия</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="result : ${analysisResults}">
             <td th:text="${result.analysisDate}">2025-05-01</td>
             <td th:text="${result.researchFile}">file.pdf</td>
-            <td>
+            <td th:if="${isAdminOrDoctor}">
                 <!-- <button onclick="openEditModal([[${result.recordId}]])">Редактировать</button>  -->
                 <!--
                 <button th:onclick="|openEditModal(${result.recordId})|" class="button">Редактировать</button>
@@ -24,9 +24,9 @@
                 </form>
                 -->
 
-                <button th:onclick="|openEditModal(${result.recordId})|" class="button">Редактировать</button>
+                <button th:onclick="|openEditAnalysisModal(${result.recordId})|" class="button">Редактировать</button>
                 <button th:onclick="viewRecord([[${result.recordId}]])" class="button">Просмотр</button>
-                <button th:onclick="deleteRecord([[${result.recordId}]])" class="button">Удалить</button>
+                <button th:onclick="deleteRecord([[${result.recordId}]], 'analysis')" class="button">Удалить</button>
 
 
             </td>

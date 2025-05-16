@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = extractTokenFromRequest(request);
+        String token = extractTokenFromRequest(request);  // значение токена
 
         if (token == null) {
             System.out.println("Token is missing in the request");

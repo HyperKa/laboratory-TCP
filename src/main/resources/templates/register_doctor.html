@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{layout/base :: layout(~{::content})}">
+    <th:block th:fragment="content">
+        <main class="form-container">
+            <h2>Регистрация доктора</h2>
+
+            <!-- Отображение ошибки -->
+            <div th:if="${param.error}" class="alert error">
+                <p th:text="${param.error[0]}">Ошибка!</p>
+            </div>
+
+            <form method="post" action="/auth/register/doctor" class="form" th:object="${doctorDTO}">
+                <label for="lastName">Фамилия:</label>
+                <input type="text" id="lastName" name="lastName" th:field="*{lastName}" required />
+
+                <label for="firstName">Имя:</label>
+                <input type="text" id="firstName" name="firstName" th:field="*{firstName}" required />
+
+                <label for="specialization">Специализация:</label>
+                <input type="text" id="specialization" name="specialization" th:field="*{specialization}" required />
+
+                <label for="experience">Опыт работы:</label>
+                <input type="text" id="experience" name="experience" th:field="*{experience}" required />
+
+                <label for="login">Логин:</label>
+                <input type="text" id="login" name="login" th:field="*{login}" required />
+
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" th:field="*{password}" required />
+
+                <button type="submit" class="button">Зарегистрировать доктора</button>
+            </form>
+        </main>
+    </th:block>
+</th:block>

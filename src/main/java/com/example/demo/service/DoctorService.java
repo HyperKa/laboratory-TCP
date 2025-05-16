@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.ClientDTO;
 import com.example.demo.dto.DoctorDTO;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Doctor;
@@ -34,6 +35,12 @@ public class DoctorService {
     // Получение доктора по ID
     public Doctor getDoctorById(Long id) {
         return doctorRepository.findById(id).orElse(null);
+    }
+
+
+    public Doctor findByLogin(String login) {
+        return  doctorRepository.findByLogin(login).orElseThrow(() ->
+                new RuntimeException("Доктор не найден в сервисе: " + login));
     }
 
     // Сохранение доктора
@@ -74,6 +81,13 @@ public class DoctorService {
         return doctorRepository.save(doctor);
     }
 
+    public DoctorDTO createDoctorAsDTO(DoctorDTO dto) {
+        Doctor doctor = convertToEntity(dto);
+        doctor.setRole(Role.DOCTOR);
+        Doctor savedDoctor = doctorRepository.save(doctor);
+        return convertToDTO(savedDoctor);
+    }
+
     // Обновление доктора
     public Doctor updateDoctor(Long id, Doctor updatedDoctor) {
         // Находим существующего врача по ID
@@ -104,6 +118,35 @@ public class DoctorService {
         return doctorRepository.save(existingDoctor);
     }
 
+    // Обновление доктора
+    public Doctor updateDoctorAsDTO(Long id, DoctorDTO updatedDoctor) {
+        // Находим существующего врача по ID
+        Doctor existingDoctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+
+        // Обновляем поля существующего врача данными из updatedDoctor
+        if (updatedDoctor.getLastName() != null) {
+            existingDoctor.setLastName(updatedDoctor.getLastName());
+        }
+        if (updatedDoctor.getFirstName() != null) {
+            existingDoctor.setFirstName(updatedDoctor.getFirstName());
+        }
+        if (updatedDoctor.getSpecialization() != null) {
+            existingDoctor.setSpecialization(updatedDoctor.getSpecialization());
+        }
+        if (updatedDoctor.getExperience() != null) {
+            existingDoctor.setExperience(updatedDoctor.getExperience());
+        }
+        if (updatedDoctor.getLogin() != null) {
+            existingDoctor.setLogin(updatedDoctor.getLogin());
+        }
+        if (updatedDoctor.getPassword() != null) {
+            existingDoctor.setPassword(passwordEncoder.encode(updatedDoctor.getPassword()));
+        }
+
+        // Сохраняем обновленного врача в базу данных
+        return doctorRepository.save(existingDoctor);
+    }
 
 
     // Преобразование Entity -> DTO

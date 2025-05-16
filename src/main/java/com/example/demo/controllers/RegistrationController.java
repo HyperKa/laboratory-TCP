@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -40,10 +41,15 @@ public class RegistrationController {
     // 📝 Регистрация клиента
     @PostMapping("/client")
     public String registerClient(@ModelAttribute ClientDTO dto, HttpServletResponse response) {
+        //System.out.println("Получено имя: " + dto.getFirstName());
+        //System.out.println("Логин: " + dto.getLogin());
+        //System.out.println("Пароль: " + dto.getPassword());
         if (clientRepository.findByLogin(dto.getLogin()).isPresent()) {
             //return ResponseEntity.badRequest().body("Client already exists");
             return "redirect:/auth/register/client?error=Client+already+exists";
         }
+
+        //System.out.println("Сохраняем клиента: " + dto.getLogin());
 
         Client client = new Client();
         client.setLogin(dto.getLogin());
@@ -56,9 +62,12 @@ public class RegistrationController {
         client.setPassport(dto.getPassport());
         client.setRole(Role.CLIENT);
 
+        System.out.println("Поля до save(): " + client);
         clientRepository.save(client);
+        System.out.println("Клиент сохранён: " + client.getLogin());
 
         String token = jwtTokenService.generateTokenFromLogin(client.getLogin(), "ROLE_CLIENT");
+        System.out.println("Сгенерирован токен: " + token);
 
         Cookie jwtCookie = new Cookie("jwt", token);
         jwtCookie.setHttpOnly(true);
@@ -70,16 +79,17 @@ public class RegistrationController {
         // return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(client.getLogin(), "ROLE_CLIENT")));
     }
 
-    // 📝 Регистрация доктора
     @PostMapping("/doctor")
-    public ResponseEntity<?> registerDoctor(@RequestBody DoctorDTO dto) {
+    public String registerDoctor(@ModelAttribute DoctorDTO dto, Model model, HttpServletResponse response) {
         if (doctorRepository.findByLogin(dto.getLogin()).isPresent()) {
-            return ResponseEntity.badRequest().body("Doctor already exists");
+            return "redirect:/auth/register/doctor?error=Doctor+already+exists";
         }
 
+        // Для проверки прав админа, но есть нюанс
         if (!userService.isAdmin(principal.getName())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only admins can register doctors");
+            return "redirect:/client/dashboard?error=Only+admins+can+register+doctors";
         }
+
 
         Doctor doctor = new Doctor();
         doctor.setLogin(dto.getLogin());
@@ -92,7 +102,17 @@ public class RegistrationController {
 
         doctorRepository.save(doctor);
 
-        return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(doctor.getLogin(), "ROLE_DOCTOR")));
+        // Генерация JWT для доктора
+        String token = jwtTokenService.generateTokenFromLogin(doctor.getLogin(), "ROLE_DOCTOR");
+
+        // Установка куки
+        Cookie jwtCookie = new Cookie("jwt", token);
+        jwtCookie.setHttpOnly(false); // чтобы можно было перенаправить
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(60 * 60 * 24);
+        response.addCookie(jwtCookie);
+
+        return "redirect:/client/dashboard";
     }
 
     // 📝 Регистрация админа
@@ -113,15 +133,17 @@ public class RegistrationController {
 
     // 📝 Отображение формы регистрации клиента
     @GetMapping("/client")
-    public String showClientRegistrationPage() {
+    public String showClientRegistrationPage(Model model) {
         System.out.println("Rendering template: register_client");
+        model.addAttribute("clientDTO", new ClientDTO());
         return "register_client"; // Имя Thymeleaf-шаблона для страницы регистрации клиента
     }
 
     // 📝 Отображение формы регистрации доктора
     @GetMapping("/doctor")
-    public String showDoctorRegistrationPage() {
-        return "register_doctor"; // Имя Thymeleaf-шаблона для страницы регистрации доктора
+    public String showDoctorRegistrationPage(Model model) {
+        model.addAttribute("doctorDTO", new DoctorDTO());
+        return "register_doctor"; // шаблон register_doctor.html
     }
 
     // 📝 Отображение формы регистрации админа

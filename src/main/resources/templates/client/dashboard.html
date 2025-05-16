@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <th:block th:replace="~{layout/base :: layout(~{::content})}">
     <th:block th:fragment="content">
 
@@ -13,8 +13,8 @@
             <p th:text="${ошибка}">Ошибка при обновлении профиля</p>
         </div>
 
-        <h2>Ваш профиль</h2>
-        <form th:action="@{/client/profile}" method="post" th:object="${client}">
+        <h2 th:unless="${isAdminOrDoctor}">Ваш профиль</h2>
+        <form th:unless="${isAdminOrDoctor}" th:action="@{/client/profile}" method="post" th:object="${client}">
             <label>Имя:
                 <input type="text" th:field="*{firstName}" required/>
             </label><br/>
@@ -42,39 +42,88 @@
             <button type="submit">Обновить профиль</button>
         </form>
 
+        <!-- Список пациентов — только для DOCTOR / ADMIN -->
+        <div th:if="${isAdminOrDoctor}">
+            <h2>Список пациентов</h2>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Логин</th>
+                        <th>Имя</th>
+                        <th>Фамилия</th>
+                        <th>Возраст</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${allClients}">
+                        <td th:text="${c.id}">ID</td>
+                        <td th:text="${c.login}">login</td>
+                        <td th:text="${c.firstName}">Имя</td>
+                        <td th:text="${c.lastName}">Фамилия</td>
+                        <td th:text="${c.age}">30</td>
+                        <td>
+                            <a th:href="@{'/web/clients/' + ${c.id}}">Просмотр</a> |
+                            <a th:href="@{'/web/clients/' + ${c.id} + '/edit'}">Редактировать</a> |
+                            <form th:action="@{'/web/clients/' + ${c.id} + '/delete'}" method="post" style="display:inline;">
+                                <button type="submit">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <hr/>
 
-        <h2>Ваши записи на приём</h2>
+        <!-- Записи на приём -->
+        <h2 th:unless="${isAdminOrDoctor}">Ваши записи на приём</h2>
+        <h2 th:if="${isAdminOrDoctor}">Записи всех пациентов</h2>
+
         <table border="1">
             <thead>
-            <tr>
-                <th>Дата</th>
-                <th>Время</th>
-                <th>Услуга</th>
-                <th>Врач</th>
-                <th>Действия</th>
-            </tr>
+                <tr>
+                    <th>Дата</th>
+                    <th>Время</th>
+                    <th>Услуга</th>
+                    <th th:if="${isAdminOrDoctor}">ID пациента</th>
+                    <th>Врач</th>
+                    <th th:if="${isAdminOrDoctor}">Действия</th>
+                </tr>
             </thead>
             <tbody>
-            <tr th:each="record : ${records}">
-                <td th:text="${record.appointmentDate}">2025-05-01</td>
-                <td th:text="${record.appointmentTime}">10:00</td>
-                <td th:text="${record.serviceName}">Терапия</td>
-                <td th:text="${record.doctorId}">1</td>
-                <td>
-                    <form th:action="@{'/web/appointments/' + ${record.recordId} + '/delete'}" method="post">
-                        <button type="submit">Удалить</button>
-                    </form>
-                    <a th:href="@{'/web/appointments/' + ${record.recordId} + '/edit'}">Редактировать</a>
-                </td>
-            </tr>
+                <tr th:each="record : ${records}">
+                    <td th:text="${record.appointmentDate}">2025-05-01</td>
+                    <td th:text="${record.appointmentTime}">10:00</td>
+                    <td th:text="${record.serviceName}">Терапия</td>
+
+                    <!-- Только доктор и админ видят ID пациента -->
+                    <td th:if="${isAdminOrDoctor}" th:text="${record.clientId}">1</td>
+
+                    <!-- Для клиента показываем врача
+                    <td th:unless="${isAdminOrDoctor}" th:text="${record.doctor.firstName + ' ' + record.doctor.lastName}">
+                        Иванов И.И.
+                    </td>  -->
+                    <td th:text="${record.doctorId}">ID врача</td>
+
+
+                    <!-- Доступные действия -->
+                    <td th:if="${isAdminOrDoctor}">
+                        <a th:href="@{'/web/appointments/' + ${record.recordId} + '/edit'}">Редактировать</a> |
+                        <form th:action="@{'/web/appointments/' + ${record.recordId} + '/delete'}" method="post" style="display:inline;">
+                            <button type="submit">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
             </tbody>
         </table>
 
         <hr/>
 
-        <h2>Добавить новую запись</h2>
-        <form action="/web/appointments" method="post">
+        <!-- Кнопка добавления записи -->
+        <h2 th:unless="${isAdminOrDoctor}">Добавить новую запись</h2>
+        <form th:unless="${isAdminOrDoctor}" action="/web/appointments" method="post">
             <label>Дата:
                 <input type="date" name="appointmentDate" required />
             </label><br/>
@@ -90,87 +139,134 @@
             <button type="submit">Сохранить</button>
         </form>
 
+        <!-- Сообщение для доктора / админа -->
+        <div th:if="${isAdminOrDoctor}">
+            <p>Вы можете просматривать все записи, но не можете создавать новые.</p>
+        </div>
+
         <hr/>
 
-
+        <!-- История болезней -->
         <h2>История болезней</h2>
         <table border="1">
             <thead>
-            <tr>
-                <th>Начало лечения</th>
-                <th>Окончание</th>
-                <th>Диагноз</th>
-                <th>Врач</th>
-                <th>Профессия</th>
-                <th>Действия</th>
-            </tr>
+                <tr>
+                    <th>Начало лечения</th>
+                    <th>Окончание</th>
+                    <th>Диагноз</th>
+                    <th>Врач</th>
+                    <th>Профессия</th>
+                    <th th:if="${isAdminOrDoctor}">ID клиента</th>
+                    <th th:if="${isAdminOrDoctor}">Действия</th>
+                </tr>
             </thead>
             <tbody>
-            <tr th:each="history : ${diseaseHistories}">
-                <td th:text="${#temporals.format(history.startDate, 'yyyy-MM-dd HH:mm')}">2025-05-01 12:00</td>
-                <td th:text="${#temporals.format(history.endDate, 'yyyy-MM-dd HH:mm')}">2025-05-10 13:00</td>
-                <td th:text="${history.disease}">Грипп</td>
-                <td th:text="${history.firstNameDoctor + ' ' + history.lastNameDoctor}">Иванов И.И.</td>
-                <td th:text="${history.profession}">Терапевт</td>
-                <td>
-                    <a th:href="@{'/web/disease-history/' + ${history.recordId}}">Просмотр</a> |
-                    <a th:href="@{'/web/disease-history/' + 'new'}">Добавить</a>
-                    <a th:href="@{'/web/disease-history/' + ${history.recordId} + '/edit'}">Редактировать</a>
-                    <form th:action="@{'/web/disease-history/' + ${history.recordId} + '/delete'}" method="post" style="display:inline;">
-                        <button type="submit">Удалить</button>
-                    </form>
-                </td>
-            </tr>
+                <tr th:each="history : ${diseaseHistories}">
+                    <td th:text="${#temporals.format(history.startDate, 'yyyy-MM-dd HH:mm')}">2025-05-01 12:00</td>
+                    <td th:text="${#temporals.format(history.endDate, 'yyyy-MM-dd HH:mm')}">2025-05-10 13:00</td>
+                    <td th:text="${history.disease}">Грипп</td>
+                    <td th:text="${history.firstNameDoctor + ' ' + history.lastNameDoctor}">Иванов И.И.</td>
+                    <td th:text="${history.profession}">Терапевт</td>
+
+                    <!-- Только доктор и админ видят ID клиента -->
+                    <td th:if="${isAdminOrDoctor}" th:text="${history.clientId}">1</td>
+
+                    <!-- Действия — только для доктора / админа -->
+                    <td th:if="${isAdminOrDoctor}">
+                        <a th:href="@{'/web/disease-history/' + ${history.recordId}}">Просмотр</a> |
+                        <a th:href="@{'/web/disease-history/' + ${history.recordId} + '/edit'}">Редактировать</a> |
+                        <form th:action="@{'/web/disease-history/' + ${history.recordId} + '/delete'}" method="post" style="display:inline;">
+                            <button type="submit">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
             </tbody>
         </table>
 
         <hr/>
 
-        <h2>Результаты анализов</h2>
+        <!-- Результаты анализов -->
+        <h2 th:unless="${isAdminOrDoctor}">Ваши результаты анализов</h2>
+        <h2 th:if="${isAdminOrDoctor}">Все результаты анализов</h2>
         <th:block th:replace="~{analysis-results/list :: content}"></th:block>
 
-        <!-- Модальное окно добавления -->
-        <div id="addAnalysisModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModal('addAnalysisModal')">&times;</span>
-                <h2>Добавить новый анализ</h2>
-                <form id="addAnalysisForm" method="post" action="/web/analysis-results">
-                    <label>Файл исследования:
-                        <input type="text" name="researchFile" required/>
-                    </label><br/>
-                    <label>Дата анализа:
-                        <input type="date" name="analysisDate" required/>
-                    </label><br/>
-                    <button type="submit" class="button">Сохранить</button>
-                    <button type="button" class="button button-cancel" onclick="closeModal('addAnalysisModal')">Закрыть</button>
-                </form>
-            </div>
-        </div>
+        <a th:if="${isAdminOrDoctor}" href="#" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
 
-        <!-- Модальное окно редактирования -->
+        <hr/>
+
+        <!-- Модальное окно редактирования анализа -->
         <div id="editAnalysisModal" class="modal">
             <div class="modal-content">
                 <span class="close-btn" onclick="closeModal('editAnalysisModal')">&times;</span>
                 <h2>Редактировать анализ</h2>
                 <form id="editAnalysisForm" method="post">
                     <input type="hidden" name="recordId" id="editRecordId"/>
+
                     <label>Файл исследования:
                         <input type="text" name="researchFile" id="editResearchFile" required/>
                     </label><br/>
+
                     <label>Дата анализа:
                         <input type="date" name="analysisDate" id="editAnalysisDate" required/>
                     </label><br/>
+
                     <button type="submit" class="button">Сохранить</button>
                     <button type="button" class="button button-cancel" onclick="closeModal('editAnalysisModal')">Закрыть</button>
                 </form>
             </div>
         </div>
 
-        <a href="#" onclick="openAddModal()">Добавить результат анализа</a>
+        <!-- Таблица докторов -->
+        <h2>Таблица докторов</h2>
+        <th:block th:replace="~{doctor/list :: content}"></th:block>
 
-        <!-- CSRF токены (отключены в SecurityConfig, поэтому хрен с ними) -->
-        <!-- <input type="hidden" id="csrfToken" th:value="${_csrf.token}" />
-        <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}" /> -->
+        <!-- Модальное окно добавления доктора -->
+        <div id="addDoctorModal" class="modal" th:if="${isAdminOrDoctor}">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal('addDoctorModal')">&times;</span>
+                <h2>Добавить нового доктора</h2>
+                <form id="addDoctorForm" method="post" action="/web/doctors">
+                    <label>Фамилия: <input type="text" name="lastName" required/></label><br>
+                    <label>Имя: <input type="text" name="firstName" required/></label><br>
+                    <label>Специализация: <input type="text" name="specialization" required/></label><br>
+                    <label>Опыт: <input type="text" name="experience" required/></label><br>
+                    <label>Логин: <input type="text" name="login" required/></label><br>
+                    <label>Пароль: <input type="password" name="password" required/></label><br>
+                    <button type="submit">Сохранить</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования доктора -->
+        <div id="editDoctorModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal('editDoctorModal')">&times;</span>
+                <h2>Редактировать доктора</h2>
+                <form id="editDoctorForm" method="post">
+                    <input type="hidden" name="id" id="editDoctorId" />
+                    <label>Фамилия: <input type="text" name="lastName" id="editLastName" /></label><br>
+                    <label>Имя: <input type="text" name="firstName" id="editFirstName" /></label><br>
+                    <label>Специализация: <input type="text" name="specialization" id="editSpecialization" /></label><br>
+                    <label>Опыт: <input type="text" name="experience" id="editExperience" /></label><br>
+                    <label>Логин: <input type="text" name="login" id="editLogin" /></label><br>
+                    <label>Пароль: <input type="password" name="password" id="editPassword" /></label><br>
+                    <button type="submit">Сохранить</button>
+                    <button type="button" onclick="closeModal('editDoctorModal')">Закрыть</button>
+                </form>
+            </div>
+        </div>
+
+
+        <div sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/auth/register/doctor}">Зарегистрировать доктора</a>
+        </div>
+
+        <div sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/auth/register/client}">Зарегистрировать нового клиента</a>
+        </div>
+
+
+        <a href="#" sec:authorize="hasAnyRole('ADMIN', 'DOCTOR')" onclick="openAddDoctorModal()">Добавить доктора</a>
 
     </th:block>
 </th:block>

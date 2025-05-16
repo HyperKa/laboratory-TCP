@@ -23,6 +23,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -45,10 +46,17 @@ public class DiseaseHistoryService {
         return diseaseHistoryRepository.findAll();
     }
 
+    public List<DiseaseHistoryDTO> getAllRecordsAsDTO() {
+        return StreamSupport.stream(diseaseHistoryRepository.findAll().spliterator(), false)
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     // Получение записи по ID
     public Optional<DiseaseHistory> getRecordById(int recordId) {
         return diseaseHistoryRepository.findById(recordId);
     }
+
 
     // Создание записи истории болезни из DTO
     public DiseaseHistory createDiseaseHistoryFromDTO(DiseaseHistoryDTO dto) {
@@ -213,6 +221,21 @@ public class DiseaseHistoryService {
         // Преобразуем в DTO
         return history.stream()
                 .map(diseaseHistory -> convertToDTO(diseaseHistory))
+                .collect(Collectors.toList());
+    }
+
+    public List<DiseaseHistoryDTO> getHistoryForDoctor(String doctorLogin) {
+        // Получаем ID доктора
+        Doctor doctor = doctorRepository.findByLogin(doctorLogin)
+                .orElseThrow(() -> new RuntimeException("Доктор не найден: " + doctorLogin));
+
+        Long doctorId = (long) doctor.getId();
+
+        // Ищем все записи, связанные с этим доктором
+        List<DiseaseHistory> histories = diseaseHistoryRepository.findByDoctorId(doctorId);
+
+        return histories.stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 

@@ -36,6 +36,9 @@ public class AppointmentRecordService {
     private DoctorRepository doctorRepository;
 
     @Autowired
+    private DoctorService doctorService;
+
+    @Autowired
     private DiseaseHistoryRepository diseaseHistoryRepository;
 
     // Преобразование Entity -> DTO
@@ -158,7 +161,7 @@ public class AppointmentRecordService {
             diseaseHistory.setAppointmentRecords(new ArrayList<>());
         }
 
-diseaseHistory.getAppointmentRecords().add(saved);
+        diseaseHistory.getAppointmentRecords().add(saved);
 
         return saved;
     }
@@ -232,19 +235,25 @@ diseaseHistory.getAppointmentRecords().add(saved);
                 .toList();
     }
 
-    public List<AppointmentRecordDTO> getAppointmentsForClient(String username) {
+    public List<AppointmentRecordDTO> getAppointmentsForUser(String username, String role) {
         // Получаем ID клиента по логину
-        Client client = clientRepository.findByLogin(username)
+        if ("ROLE_CLIENT".equals(role)) {
+            Client client = clientRepository.findByLogin(username)
                 .orElseThrow(() -> new RuntimeException("Client not found with login: " + username));
-
-        // Получаем все записи клиента
-        //List<AppointmentRecord> records = appointmentRecordRepository.findByClientId((long) client.getId());
-        List<AppointmentRecord> records = appointmentRecordRepository.findByClient(client);
-
-        // Преобразуем в DTO
-        return records.stream()
-                .map(appointmentRecord -> convertToDTO(appointmentRecord))
+            List<AppointmentRecord> records = appointmentRecordRepository.findByClient(client);
+            return records.stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
+        } else if ("ROLE_DOCTOR".equals(role)) {
+            Doctor doctor = doctorService.findByLogin(username);
+            return appointmentRecordRepository.findByDoctor(doctor).stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        } else if ("ROLE_ADMIN".equals(role)) {
+            return appointmentRecordRepository.findAll().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        }
+        throw new RuntimeException("Неподдерживаемая роль: " + role);
     }
-
 }
