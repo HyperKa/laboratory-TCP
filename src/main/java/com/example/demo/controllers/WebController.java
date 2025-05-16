@@ -52,9 +52,15 @@ public class WebController {
     public String showRecordById() {
         return "disease-history";
     }
-
+/*
     @GetMapping("/records")
     public String showRecords() {
+        return "records";
+    }
+
+ */
+    @GetMapping("/my-records")
+    public String showRecordsmy() {
         return "records";
     }
     @RequestMapping("/favourite_recipes")

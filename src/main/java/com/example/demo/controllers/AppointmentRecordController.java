@@ -1,90 +1,18 @@
-/*
-package com.example.demo.controllers;
-
-import com.example.demo.entity.AppointmentRecord;
-import com.example.demo.service.AppointmentRecordService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/v1/appointment_records")
-public class AppointmentRecordController {
-
-    @Autowired
-    private AppointmentRecordService appointmentRecordService;
-
-    // CREATE
-    @PostMapping
-    public ResponseEntity<AppointmentRecord> createRecord(@RequestBody AppointmentRecord record) {
-        return ResponseEntity.status(201).body(appointmentRecordService.createRecord(
-                (long) record.getClient().getId(),
-                (long) record.getDoctor().getId(),
-                record.getAppointmentDate(),
-                record.getAppointmentTime(),
-                record.getServiceName(),
-                record.getDiseaseHistory() != null ? (long) record.getDiseaseHistory().getRecordId() : null
-        ));
-    }
-
-    // READ (все записи)
-    @GetMapping
-    public ResponseEntity<List<AppointmentRecord>> getAllRecords() {
-        return ResponseEntity.ok(appointmentRecordService.getAllRecords());
-    }
-
-    // READ (по составному ключу)
-    @GetMapping("/{clientId}/{recordId}")
-    public ResponseEntity<AppointmentRecord> getRecordById(
-            @PathVariable Long clientId,
-            @PathVariable Long recordId) {
-
-        return appointmentRecordService.getRecordById(clientId, recordId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // UPDATE
-    @PutMapping("/{clientId}/{recordId}")
-    public ResponseEntity<AppointmentRecord> updateRecord(
-            @PathVariable Long clientId,
-            @PathVariable Long recordId,
-            @RequestBody AppointmentRecord updatedRecord) {
-
-        return ResponseEntity.ok(appointmentRecordService.updateAppointmentRecord(clientId, recordId, updatedRecord));
-    }
-
-    // DELETE
-    @DeleteMapping("/{clientId}/{recordId}")
-    public ResponseEntity<Void> deleteRecord(
-            @PathVariable Long clientId,
-            @PathVariable Long recordId) {
-
-        appointmentRecordService.deleteRecord(clientId, recordId);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-*/
-
-
 package com.example.demo.controllers;
 
 import com.example.demo.dto.AppointmentRecordDTO;
 import com.example.demo.entity.AppointmentRecord;
+import com.example.demo.entity.Client;
 import com.example.demo.repository.ClientRepository;
-import com.example.demo.repository.DiseaseHistoryRepository;
-import com.example.demo.repository.DoctorRepository;
 import com.example.demo.service.AppointmentRecordService;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/appointment-records")
@@ -93,21 +21,42 @@ public class AppointmentRecordController {
     @Autowired
     private AppointmentRecordService appointmentRecordService;
 
+    @Autowired
+    private ClientRepository clientRepository;
+
     // Получение всех записей
     @GetMapping
     public ResponseEntity<List<AppointmentRecordDTO>> getAllRecords() {
         return ResponseEntity.ok(appointmentRecordService.getAllRecordsAsDTO());
     }
 
-    // 🔥 Получить все записи клиента по его ID из токена
+    // 🔥 Получение записей текущего клиента по его ID из токена
     @GetMapping("/my-records")
     public ResponseEntity<List<AppointmentRecordDTO>> getMyRecords(Authentication authentication) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-        Long userId = Long.valueOf(jwt.getClaim("sub")); // sub — это ID пользователя
+        Long userId;
+
+         if (authentication.getPrincipal() instanceof Map<?, ?> claimsMap) {
+            Map<String, Object> claims = (Map<String, Object>) claimsMap;
+            String sub = (String) claims.get("sub");
+
+            if (sub == null || sub.isEmpty()) {
+                throw new RuntimeException("Поле 'sub' отсутствует в токене");
+            }
+
+            try {
+                userId = Long.valueOf(sub);
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Неверный формат ID в токене", e);
+            }
+        }
+        else {
+            throw new RuntimeException("Неизвестный тип Principal: " + authentication.getPrincipal().getClass().getName());
+        }
 
         List<AppointmentRecordDTO> records = appointmentRecordService.findRecordsByClientId(userId);
         return ResponseEntity.ok(records);
     }
+
     // Получение записи по ID
     @GetMapping("/{recordId}")
     public ResponseEntity<AppointmentRecordDTO> getRecordById(@PathVariable Integer recordId) {
