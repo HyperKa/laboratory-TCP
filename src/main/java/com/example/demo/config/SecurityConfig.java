@@ -90,8 +90,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasRole("ADMIN")
                         // тут было ограничение для доктора
-
-
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                     .anyRequest().authenticated()
                 )
 

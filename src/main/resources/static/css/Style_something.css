@@ -1,0 +1,101 @@
+/* Базовые стили */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+/* Контейнер формы */
+form {
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Поля формы */
+label {
+    display: block;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+input[type="date"],
+input[type="time"],
+input[type="number"],
+input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Кнопка отправки */
+button[type="submit"] {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #2980b9;
+}
+
+/* Ссылка "Назад" */
+.button {
+    display: inline-block;
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.button:hover {
+    background-color: #cccccc;
+}
+
+/* Блок с кнопкой возврата */
+div[style*="margin-top"] {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    form {
+        padding: 20px 15px;
+    }
+
+    button[type="submit"],
+    .button {
+        width: 100%;
+    }
+}

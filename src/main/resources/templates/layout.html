@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Медицинская система</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+    <!-- ✅ Только один корректный путь -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+
+    <!-- JS (если он действительно есть) -->
     <script th:src="@{/js/main.js}" defer></script>
 </head>
 <body>
+
 <header>
     <nav>
         <a th:href="@{/}">Главная</a>
@@ -16,6 +21,7 @@
     </nav>
 </header>
 
+<!-- 🔽 Контент дочерней страницы -->
 <div th:fragment="layout(content)">
     <div th:replace="${content}"></div>
 </div>
@@ -23,6 +29,6 @@
 <footer>
     <p>&copy; 2023 Медицинская система</p>
 </footer>
+
 </body>
 </html>
-

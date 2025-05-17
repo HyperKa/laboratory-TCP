@@ -1,19 +1,20 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<!-- login.html -->
 <th:block th:replace="~{layout/base :: layout(~{::content})}">
     <th:block th:fragment="content">
         <h2>Вход в систему</h2>
         <form th:action="@{/auth/login}" method="post">
             <div>
                 <label for="login">Логин:</label>
-                <input type="text" id="login" name="login">
+                <input type="text" id="login" name="login" required>
             </div>
             <div>
                 <label for="password">Пароль:</label>
-                <input type="password" id="password" name="password">
+                <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Войти</button>
+            <button type="submit"  class="login-button">Войти</button>
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="/" class="button" style="text-decoration: none;">На главную</a>
+            </div>
         </form>
     </th:block>
 </th:block>
-</html>

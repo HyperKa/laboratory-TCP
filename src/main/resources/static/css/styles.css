@@ -30,6 +30,7 @@ main {
     gap: 10px;
 }
 
+
 .button {
     background-color: #007bff;
     color: white;
@@ -148,4 +149,41 @@ button:disabled {
 
 .button-cancel {
     background-color: #ccc;
+}
+
+ .logout-container {
+     position: absolute;
+     top: 20px;
+     right: 20px;
+ }
+
+#logoutBtn {
+    background-color: #a90404; /* Пепельно-бордовый */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#logoutBtn:hover {
+    background-color: #8b0000; /* Темнее при наведении */
+}
+
+.login-button {
+    background-color: #227adc; /* светло-голубой */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+}
+
+.login-button:hover {
+    background-color: #1d4878; /* голубой при наведении */
 }
