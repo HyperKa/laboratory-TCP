@@ -18,7 +18,7 @@
         </thead>
         <tbody>
         <!-- Пример строки с данными -->
-        <tr th:each="client : ${allClients}">
+        <tr th:each="client : ${allClients}">  <!-- Interesting  -->
             <td th:text="${client.id}"></td>
             <td th:text="${client.age}"></td>
             <td th:text="${client.lastName}"></td>

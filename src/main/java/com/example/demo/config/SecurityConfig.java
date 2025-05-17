@@ -43,6 +43,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/client/dashboard").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
 
+
                         // Доктора может регать только админ
                         .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
 

@@ -126,6 +126,9 @@ public class ClientDashboardController {
         if (clientDTO != null) {
             model.addAttribute("client", clientDTO);
         }
+        else {
+            model.addAttribute("client", new ClientDTO());
+        }
 
         model.addAttribute("records", records);
         model.addAttribute("diseaseHistories", diseaseHistories);
@@ -134,7 +137,6 @@ public class ClientDashboardController {
         model.addAttribute("allClients", allClients);
         model.addAttribute("isAdminOrDoctor", isAdminOrDoctor);
 
-        model.addAttribute("client", new ClientDTO());
 
         return "client/dashboard";
     }
@@ -252,13 +254,16 @@ public class ClientDashboardController {
     @PostMapping("/profile")
     public String updateProfile(@ModelAttribute("client") ClientDTO clientDTO, Principal principal, RedirectAttributes redirectAttributes) {
         String username = principal.getName();
-
+        /*
         Long clientId = clientDTO.getId();
         if (clientId == null) {
             throw new IllegalArgumentException("ID клиента не может быть null");
         }
         clientService.updateClientById(clientId, clientDTO);
         redirectAttributes.addFlashAttribute("успешно", "Профиль обновлен");
+         */
+        redirectAttributes.addFlashAttribute("успешно", "Профиль успешно обновлен");
+        clientService.updateClientByLogin(username, clientDTO);
         return "redirect:/client/dashboard";
     }
 

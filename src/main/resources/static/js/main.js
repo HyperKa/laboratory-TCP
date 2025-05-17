@@ -336,7 +336,7 @@ document.addEventListener("DOMContentLoaded", function () {
         editClientForm.addEventListener("submit", function(event) {
             event.preventDefault();
 
-            const clientId = document.getElementById("client_id").value;
+            const clientId = document.getElementById("client_id").value;   // Хоба, нейминг переменных ДОЛЖЕН совпадать
             const firstName = document.getElementById("client_firstName").value;
             const lastName = document.getElementById("client_lastName").value;
             const login = document.getElementById("client_login").value;

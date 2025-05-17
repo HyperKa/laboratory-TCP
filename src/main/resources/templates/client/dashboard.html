@@ -19,7 +19,7 @@
         </div>
 
         <h2 th:unless="${isAdminOrDoctor}">Ваш профиль</h2>
-        <form th:unless="${isAdminOrDoctor}" th:action="@{/client/profile}" method="post" th:object="${client}">
+        <form th:unless="${isAdminOrDoctor}" th:action="@{/client/profile}" method="post" th:object="${client}" >
             <label>Имя:
                 <input type="text" th:field="*{firstName}" required/>
             </label><br/>
@@ -250,12 +250,10 @@
         <h2 th:if="${isAdminOrDoctor}">Все результаты анализов</h2>
         <th:block th:replace="~{analysis-results/list :: content}"></th:block>
 
-<<<<<<< HEAD
+
         <!-- <a th:if="${isAdminOrDoctor}" href="@{'web/analysis-results/new'}" onclick="openAddAnalysisModal()">Добавить результат анализа</a> -->
         <a href="#" sec:authorize="hasAnyRole('ADMIN', 'DOCTOR')" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
-=======
-        <a th:if="${isAdminOrDoctor}" th:href="@{'/web/analysis-results/new'}" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
->>>>>>> e3c1963b362ea430f06d114d7090d0ed29385a1a
+
 
         <hr/>
         <!-- Модальное окно добавления анализа -->
@@ -347,17 +345,17 @@
             </div>
         </div>
 
-
+        <!--
         <div sec:authorize="hasRole('ADMIN')">
             <a th:href="@{/auth/register/doctor}">Зарегистрировать доктора</a>
         </div>
-
+        -->
         <div sec:authorize="hasRole('ADMIN')">
             <a th:href="@{/auth/register/client}">Зарегистрировать нового клиента</a>
         </div>
 
 
-        <a href="#" sec:authorize="hasAnyRole('ADMIN', 'DOCTOR')" onclick="openAddDoctorModal()">Добавить доктора</a>
+        <a href="#" sec:authorize="hasRole('ADMIN')" onclick="openAddDoctorModal()">Добавить доктора</a>
 
     </th:block>
 </th:block>
