@@ -46,6 +46,8 @@ public class ClientDashboardController {
      */
     @GetMapping("/dashboard")
     public String showDashboard(Model model, Principal principal) {
+
+
         String username = principal.getName();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -55,6 +57,10 @@ public class ClientDashboardController {
                 .orElseThrow(() -> new RuntimeException("Роль не определена"));
 
         boolean isAdminOrDoctor = !"ROLE_CLIENT".equals(role);
+
+
+        System.out.println("Current user: " + principal.getName());
+        System.out.println("Roles: " + auth.getAuthorities());
 
         // 1. Получаем список записей на приём в зависимости от роли
         List<AppointmentRecordDTO> records;
@@ -109,8 +115,11 @@ public class ClientDashboardController {
 
         // 6. Список всех клиентов (для DOCTOR и ADMIN)
         List<ClientDTO> allClients = List.of();
-        if (isAdminOrDoctor) {
+        if ("ROLE_ADMIN".equals(role)) {
             allClients = clientService.getAllClientsAsDTO();
+        } else if ("ROLE_DOCTOR".equals(role)) {
+            allClients = clientService.getClientsForDoctor(username);
+            //allClients = clientService.getAllClientsAsDTO();
         }
 
         // 7. Передача данных в модель
@@ -124,6 +133,8 @@ public class ClientDashboardController {
         model.addAttribute("doctors", doctors);
         model.addAttribute("allClients", allClients);
         model.addAttribute("isAdminOrDoctor", isAdminOrDoctor);
+
+        model.addAttribute("client", new ClientDTO());
 
         return "client/dashboard";
     }
@@ -242,8 +253,11 @@ public class ClientDashboardController {
     public String updateProfile(@ModelAttribute("client") ClientDTO clientDTO, Principal principal, RedirectAttributes redirectAttributes) {
         String username = principal.getName();
 
-        clientService.updateClientFromDTO(username, clientDTO);
-
+        Long clientId = clientDTO.getId();
+        if (clientId == null) {
+            throw new IllegalArgumentException("ID клиента не может быть null");
+        }
+        clientService.updateClientById(clientId, clientDTO);
         redirectAttributes.addFlashAttribute("успешно", "Профиль обновлен");
         return "redirect:/client/dashboard";
     }

@@ -90,11 +90,12 @@ public class AnalysisResultService {
     // Создание анализа "в одну строку"
     public AnalysisResult createAnalysisResultAsDto(AnalysisResultRequest dto, String username) {
         // Находим клиента по ID
+        System.out.println("Логин пользователя " + username + "\tID клиента: " + dto.getClientId());
         Client client;
-        if (dto.getClientId() != null) {
-            client = clientRepository.findByLogin(username)
-                    .orElseThrow(() -> new RuntimeException("Клиент с именем " + username + " не найден"));
-        } else {
+        if (dto.getClientId() != null) {    // Если в форме обнаружен явный ID
+            client = clientRepository.findById(dto.getClientId())
+                    .orElseThrow(() -> new RuntimeException("Клиент с ID " + dto.getClientId() + " не найден"));
+        } else {    // Все клиенты по логину сюда залетают
             client = clientRepository.findByLogin(username)
                     .orElseThrow(() -> new RuntimeException("Клиент с именем " + username + " не найден"));
         }

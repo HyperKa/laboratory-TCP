@@ -7,16 +7,24 @@
     <title>Редактировать клиента</title>
 </head>
 <body>
-<h1>Редактировать данные врача</h1>
-<form th:action="@{'/web/doctors/' + ${doctor.id}}" method="post" th:object="${doctor}">
-    <label>Фамилия: <input type="text" th:field="*{lastName}" required/></label><br>
-    <label>Имя: <input type="text" th:field="*{firstName}" required/></label><br>
-    <label>Специализация: <input type="text" th:field="*{specialization}" required/></label><br>
-    <label>Опыт работы: <input type="text" th:field="*{experience}" required/></label><br>
-    <label>Логин: <input type="text" th:field="*{login}" required/></label><br>
-    <label>Пароль: <input type="password" th:field="*{password}" required/></label><br>
-    <button type="submit">Сохранить</button>
-    <button type="button" onclick="closeModal('editDoctorModal')">Отмена</button>
-</form>
+<th:block th:fragment="content">
+    <div id="editClientModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('editClientModal')">&times;</span>
+            <h1>Редактировать данные клиента</h1>
+            <form th:action="@{'/web/clients/' + ${client.id}}" method="post" th:object="${client}">
+                <label>Возраст: <input type="text" th:field="*{age}" required/></label><br>
+                <label>Пол: <input type="text" th:field="*{gender}" required/></label><br>
+                <label>Фамилия: <input type="text" th:field="*{lastName}" required/></label><br>
+                <label>Имя: <input type="text" th:field="*{firstName}" required/></label><br>
+                <label>Паспорт: <input type="text" th:field="*{passport}" required/></label><br>
+                <label>Логин: <input type="text" th:field="*{login}" required/></label><br>
+                <label>Пароль: <input type="password" th:field="*{password}" required/></label><br>
+                <button type="submit">Сохранить</button>
+                <button type="button" onclick="closeModal('editDoctorModal')">Отмена</button>
+            </form>
+        </div>
+    </div>
+</th:block>
 </body>
 </html>

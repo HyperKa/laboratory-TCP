@@ -62,8 +62,10 @@ public class ClientController {
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<ClientDTO> updateClient(@PathVariable String login, @RequestBody ClientDTO updatedClientDTO) {
-        return ResponseEntity.ok(clientService.updateClientFromDTO(login, updatedClientDTO));
+    public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id, @RequestBody ClientDTO dto) {
+        return ResponseEntity.of(
+            clientService.updateClientById(id, dto)
+        );
     }
 
     // DELETE

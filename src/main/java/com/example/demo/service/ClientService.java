@@ -14,22 +14,29 @@ import com.example.demo.dto.AppointmentRecordDTO;
 import com.example.demo.dto.ClientDTO;
 import com.example.demo.entity.AppointmentRecord;
 import com.example.demo.entity.Client;
+import com.example.demo.entity.Doctor;
 import com.example.demo.entity.Role;
+import com.example.demo.repository.AppointmentRecordRepository;
 import com.example.demo.repository.ClientRepository;
+import com.example.demo.repository.DoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 @Service
 public class ClientService {
 
     @Autowired
     private ClientRepository clientRepository;
+
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private AppointmentRecordRepository appointmentRecordRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder; // Добавляем PasswordEncoder
@@ -88,6 +95,26 @@ public class ClientService {
 
         return clientRepository.save(existingClient);
     }
+
+    public Optional<ClientDTO> updateClientById(Long id, ClientDTO dto) {
+        return clientRepository.findById(id).map(client -> {
+            client.setFirstName(dto.getFirstName());
+            client.setLastName(dto.getLastName());
+            client.setAge(dto.getAge());
+            client.setGender(dto.getGender());
+            client.setAddress(dto.getAddress());
+            client.setPassport(dto.getPassport());
+            client.setLogin(dto.getLogin());
+
+            if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+                client.setPassword(passwordEncoder.encode(dto.getPassword()));
+            }
+
+            Client savedClient = clientRepository.save(client);
+            return convertToDTO(savedClient);
+        });
+    }
+
     /*
     //для смены пароля
 
@@ -157,13 +184,13 @@ public class ClientService {
     }
 
     // Обновление клиента из DTO
-    public ClientDTO updateClientFromDTO(String login, ClientDTO updatedDto) {
+    public ClientDTO updateClientFromDTO(Long id, ClientDTO updatedDto) {
 
-        if (login == null) {
+        if (id == null) {
             throw new IllegalArgumentException("ID must not be null");
         }
-        Client existingClient = clientRepository.findByLogin(login)
-                .orElseThrow(() -> new RuntimeException("Client not found with login: " + login));
+        Client existingClient = clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Client not found with ID: " + id));
 
         // Обновляем поля существующего клиента
         existingClient.setAge(updatedDto.getAge());
@@ -192,6 +219,40 @@ public class ClientService {
         client.setPassport(clientDTO.getPassport());
 
         clientRepository.save(client);
+    }
+
+    public List<ClientDTO> getClientsForDoctor(String username) {
+        Doctor doctor = doctorRepository.findByLogin(username)
+                .orElseThrow(() -> new RuntimeException("Доктор не найден"));
+
+        List<AppointmentRecord> records = appointmentRecordRepository.findByDoctor(doctor);
+
+        return records.stream()
+                .map(record -> {
+                    Client client = record.getClient();
+                    if (client == null) {
+                        return null;
+                    }
+
+                    ClientDTO dto = new ClientDTO();
+                    dto.setId(Long.valueOf(client.getId()));
+                    dto.setFirstName(client.getFirstName());
+                    dto.setLastName(client.getLastName());
+                    dto.setLogin(client.getLogin());
+                    dto.setAge(client.getAge());
+                    dto.setAddress(client.getAddress());
+                    dto.setPassport(client.getPassport());
+                    return dto;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        ClientDTO::getId,
+                        dto -> dto,
+                        (existing, replacement) -> existing // если дубликаты, берём первый
+                ))
+                .values()
+                .stream()
+                .toList();
     }
 
 }

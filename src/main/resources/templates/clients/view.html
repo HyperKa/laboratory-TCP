@@ -6,13 +6,24 @@
     <title>Информация о клиенте</title>
 </head>
 <body>
-<h1>Информация о клиенте</h1>
-    <p>Идентификатор клиента: <span th:text="${doctor.id}">1</span></p>
-    <p>Фамилия: <span th:text="${doctor.lastName}">Иванов</span></p>
-    <p>Имя: <span th:text="${doctor.firstName}">Иван</span></p>
-    <p>Специализация: <span th:text="${doctor.specialization}">Терапевт</span></p>
-    <p>Опыт: <span th:text="${doctor.experience}">5 лет</span></p>
-    <p>Логин: <span th:text="${doctor.login}">ivanov</span></p>
-    <a th:href="@{/client/dashboard}">Назад</a>
+
+<!-- Просмотр клиента -->
+<th:block th:fragment="content(client)">
+    <div id="viewClientModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('viewClientModal')">&times;</span>
+            <h2>Информация о клиенте</h2>
+            <p>ID: <span th:text="${client.id}">1</span></p>
+            <p>Имя: <span th:text="${client.firstName}">Иван</span></p>
+            <p>Фамилия: <span th:text="${client.lastName}">Иванов</span></p>
+            <p>Возраст: <span th:text="${client.age}">30</span></p>
+            <p>Пол: <span th:text="${client.gender}">Мужской</span></p>
+            <p>Адрес: <span th:text="${client.address}">ул. Ленина</span></p>
+            <p>Паспорт: <span th:text="${client.passport}">AB1234567</span></p>
+            <p>Логин: <span th:text="${client.login}">ivanov</span></p>
+        </div>
+    </div>
+</th:block>
+
 </body>
 </html>

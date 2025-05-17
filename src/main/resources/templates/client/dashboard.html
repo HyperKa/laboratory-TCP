@@ -43,6 +43,7 @@
         </form>
 
         <!-- Список пациентов — только для DOCTOR / ADMIN -->
+        <!--
         <div th:if="${isAdminOrDoctor}">
             <h2>Список пациентов</h2>
             <table border="1">
@@ -73,6 +74,60 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+        -->
+
+
+        <!-- Список пациентов -->
+        <div th:if="${isAdminOrDoctor}">
+            <h2 th:if="${role == 'ROLE_DOCTOR'}">Ваши пациенты</h2>
+            <h2 th:if="${role == 'ROLE_ADMIN'}">Все клиенты</h2>
+            <h2>Список пациентов</h2>
+            <th:block th:replace="~{clients/list :: content}"></th:block>
+        </div>
+
+        <!-- Модальные окна -->
+        <div th:if="${isAdminOrDoctor}">
+            <!-- <th:block th:insert="~{clients/edit :: content}"></th:block> -->
+            <th:block th:insert="~{clients/view :: content(${client})}"></th:block>
+
+        </div>
+
+        <!-- Модальное окно редактирования клиента -->
+        <div id="editClientModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal('editClientModal')">&times;</span>
+                <h2>Редактировать данные клиента</h2>
+                <form id="editClientForm" method="post">
+                    <input type="hidden" name="id" id="client_id"/>
+                    <label>Имя:
+                        <input type="text" id="client_firstName" name="firstName" required/>
+                    </label>
+                    <label>Фамилия:
+                        <input type="text" id="client_lastName" name="lastName" required/>
+                    </label>
+                    <label>Логин:
+                        <input type="text" id="client_login" name="login" required/>
+                    </label>
+                    <label>Пароль:
+                        <input type="password" id="client_password" name="password"/>
+                    </label>
+                    <label>Возраст:
+                        <input type="number" id="client_age" name="age" required/>
+                    </label>
+                    <label>Пол:
+                        <input type="text" id="client_gender" name="gender" required/>
+                    </label>
+                    <label>Адрес:
+                        <input type="text" id="client_address" name="address" required/>
+                    </label>
+                    <label>Паспорт:
+                        <input type="text" id="client_passport" name="passport" required/>
+                    </label><br/>
+                    <button type="submit" class="button">Сохранить изменения</button>
+                    <button type="button" class="button button-cancel" onclick="closeModal('editClientModal')">Отмена</button>
+                </form>
+            </div>
         </div>
 
         <hr/>
@@ -190,10 +245,37 @@
         <h2 th:if="${isAdminOrDoctor}">Все результаты анализов</h2>
         <th:block th:replace="~{analysis-results/list :: content}"></th:block>
 
-        <a th:if="${isAdminOrDoctor}" href="#" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
+        <!-- <a th:if="${isAdminOrDoctor}" href="@{'web/analysis-results/new'}" onclick="openAddAnalysisModal()">Добавить результат анализа</a> -->
+        <a href="#" sec:authorize="hasAnyRole('ADMIN', 'DOCTOR')" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
 
         <hr/>
-
+        <!-- Модальное окно добавления анализа -->
+        <div id="addAnalysisModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal('addAnalysisModal')">&times;</span>
+                <h2>Добавить результат анализа</h2>
+                <form id="addAnalysisForm" method="post" action="/web/analysis-results">
+                    <label th:if="${isAdminOrDoctor}">
+                        Клиент:
+                        <select id="analysisClientId" name="clientId" required>
+                            <option value="">Выберите клиента</option>
+                            <option th:each="client : ${allClients}"
+                                    th:value="${client.id}"
+                                    th:text="${client.firstName + ' ' + client.lastName + ' (' + client.login + ')'}">
+                            </option>
+                        </select>
+                    </label>
+                    <label>Файл исследования:
+                        <input type="text" id="researchFile" name="researchFile" required/>
+                    </label><br/>
+                    <label>Дата анализа:
+                        <input type="date" id="analysisDate" name="analysisDate" required/>
+                    </label><br/>
+                    <button type="submit" class="button">Сохранить</button>
+                    <button type="button" class="button button-cancel" onclick="closeModal('addAnalysisModal')">Закрыть</button>
+                </form>
+            </div>
+        </div>
         <!-- Модальное окно редактирования анализа -->
         <div id="editAnalysisModal" class="modal">
             <div class="modal-content">

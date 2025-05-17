@@ -22,7 +22,7 @@ public class ClientControllerWeb {
 
     @GetMapping
     public String showAllAppointments(Model model) {
-        model.addAttribute("clients", clientService.getAllClients()
+        model.addAttribute("client", clientService.getAllClients()
             .stream()
             .map(clientService::convertToDTO)
             .collect(Collectors.toList()));
@@ -32,7 +32,7 @@ public class ClientControllerWeb {
 
     @GetMapping("/new")
     public String showCreateForm(Model model) {
-        model.addAttribute("clients", new ClientDTO());
+        model.addAttribute("client", new ClientDTO());
         return "clients/create";
     }
 
@@ -48,15 +48,22 @@ public class ClientControllerWeb {
     public String viewRecord(@PathVariable Long id, Model model) {
         ClientDTO dto = clientService.getClientByIdAsDTO(id)
                 .orElseThrow(() -> new RuntimeException("Запись не найдена"));
-        model.addAttribute("clients", dto);
+        model.addAttribute("client", dto);
         return "clients/view";
+    }
+
+    @GetMapping("/api/{id}")
+    @ResponseBody
+    public ClientDTO getClientApi(@PathVariable Long id) {
+        return clientService.getClientByIdAsDTO(id)
+                .orElseThrow(() -> new RuntimeException("Клиент не найден"));
     }
 
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         ClientDTO dto = clientService.getClientByIdAsDTO(id)
                 .orElseThrow(() -> new RuntimeException("Запись не найдена"));
-        model.addAttribute("clients", dto);
+        model.addAttribute("client", dto);
         return "clients/edit";
     }
 
@@ -65,7 +72,7 @@ public class ClientControllerWeb {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         System.out.println("ID записи: " + id);
-        clientService.updateClientFromDTO(username, dto);
+        clientService.updateClientFromDTO(Long.valueOf(id), dto);  // вот тут если передавать login - возьмет логин текущего пользователя системы - доктора, а не нужного клиента
         //return "redirect:/web/appointments";
         return "redirect:/client/dashboard";
     }

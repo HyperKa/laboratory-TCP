@@ -49,6 +49,35 @@ window.openEditDoctorModal = function(recordId) {
         .catch(error => console.error('Ошибка загрузки данных:', error));
 };
 
+// Открытие модального окна редактирования клиента
+window.openEditClientModal = function(recordId) {
+    console.log("openEditClientModal вызвана с recordId:", recordId);
+    if (!recordId) {
+        console.error("recordId не указан");
+        return;
+    }
+
+    fetch(`/web/clients/api/${recordId}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Ошибка загрузки данных клиента");
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('client_id').value = data.id;
+            document.getElementById('client_firstName').value = data.firstName;
+            document.getElementById('client_lastName').value = data.lastName;
+            document.getElementById('client_age').value = data.age;
+            document.getElementById('client_gender').value = data.gender;
+            document.getElementById('client_address').value = data.address;
+            document.getElementById('client_passport').value = data.passport;
+            document.getElementById('client_login').value = data.login;
+
+            const modal = document.getElementById('editClientModal');
+            if (modal) modal.classList.add('show');
+        })
+        .catch(error => console.error('Ошибка:', error));
+};
+
 
 
 window.openAddAnalysisModal = function() {
@@ -173,6 +202,48 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Обработка формы добавления анализа
+    const addAnalysisForm = document.getElementById("addAnalysisForm");
+    if (addAnalysisForm) {
+        addAnalysisForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const researchFile = document.getElementById("researchFile").value;
+            const analysisDate = document.getElementById("analysisDate").value;
+
+            // Только для доктора/админа — clientId может быть указан
+            const clientIdInput = document.getElementById("analysisClientId");
+            const clientId = clientIdInput ? clientIdInput.value : null;
+
+            const formData = new URLSearchParams();
+            formData.append("researchFile", researchFile);
+            formData.append("analysisDate", analysisDate);
+
+            if (clientId) {
+                formData.append("clientId", clientId); // ✅ Добавляем clientId, если он есть
+            }
+
+            fetch("/web/analysis-results", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData.toString(),
+                credentials: "same-origin"
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Ошибка сохранения");
+                alert("Анализ успешно сохранён!");
+                closeModal("addAnalysisModal");
+                location.reload();
+            })
+            .catch(err => {
+                console.error("Ошибка:", err);
+                alert("Не удалось сохранить анализ");
+            });
+        });
+    }
+
     // Обработка формы редактирования
     const editAnalysisForm = document.getElementById("editAnalysisForm");
     if (editAnalysisForm) {
@@ -255,6 +326,53 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(err => {
                 console.error("Ошибка:", err);
                 alert("Не удалось сохранить данные доктора");
+            });
+        });
+    }
+
+    // Обработка формы редактирования клиента
+    const editClientForm = document.getElementById("editClientForm");
+    if (editClientForm) {
+        editClientForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const clientId = document.getElementById("client_id").value;
+            const firstName = document.getElementById("client_firstName").value;
+            const lastName = document.getElementById("client_lastName").value;
+            const login = document.getElementById("client_login").value;
+            const password = document.getElementById("client_password").value;
+            const age = document.getElementById("client_age").value;
+            const gender = document.getElementById("client_gender").value;
+            const address = document.getElementById("client_address").value;
+            const passport = document.getElementById("client_passport").value;
+
+            const formData = new URLSearchParams();
+            formData.append("firstName", firstName);
+            formData.append("lastName", lastName);
+            formData.append("login", login);
+            formData.append("password", password);
+            formData.append("age", age);
+            formData.append("gender", gender);
+            formData.append("address", address);
+            formData.append("passport", passport);
+
+            fetch(`/web/clients/${clientId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData.toString(),
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Ошибка сохранения");
+                alert("Клиент успешно обновлён!");
+                closeModal("editClientModal");
+                location.reload();
+            })
+            .catch(err => {
+                console.error("Ошибка:", err);
+                alert("Не удалось сохранить изменения");
             });
         });
     }

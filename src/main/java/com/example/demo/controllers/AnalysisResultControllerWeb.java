@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.xml.bind.SchemaOutputResolver;
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -40,12 +41,28 @@ public class AnalysisResultControllerWeb {
         return "analysis-results/create";
     }
 
+    /*
     @PostMapping
     public String createAnalysisResult(@ModelAttribute AnalysisResultRequest dto) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName(); // при использовании Spring Security
         analysisResultService.createAnalysisResultAsDto(dto, username);
         System.out.println("Контроллер создания - analysisResults");
         // return "redirect:/web/appointments";    Да нахрен мне нужна эта таблица, уже есть ебейший лк
+        return "redirect:/client/dashboard";
+    }
+
+     */
+    @PostMapping
+    public String createAnalysisResult(
+            @ModelAttribute AnalysisResultRequest dto,
+            Principal principal) {
+
+        String username = principal.getName();
+
+        // DTO содержит clientId? -> используем его
+        // Иначе -> находим клиента по текущему пользователю
+        analysisResultService.createAnalysisResultAsDto(dto, username);
+
         return "redirect:/client/dashboard";
     }
 

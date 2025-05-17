@@ -112,6 +112,13 @@ button:disabled {
     position: relative;
 }
 
+.modal-content .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* расстояние между label и input */
+    margin-bottom: 8px; /* расстояние между группами */
+}
+
 .modal-content h2 {
     margin-top: 0;
 }
@@ -122,10 +129,12 @@ button:disabled {
 }
 
 .modal-content input,
+.modal-content input[type="text"],
+.modal-content input[type="password"],
 .modal-content select {
-    width: 100%;
+    width: 90%;
     padding: 6px;
-    margin-bottom: 10px;
+    margin-bottom: 2px;
 }
 
 .modal-content .close-btn {
