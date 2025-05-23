@@ -37,9 +37,10 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/auth/login/**").permitAll()
-                        .requestMatchers("/auth/register/client").permitAll()
-                        .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
-                        .requestMatchers("/auth/register/admin").permitAll() // временно разрешаем для первого админа
+                        .requestMatchers("/api/auth/login/**").permitAll()
+                        .requestMatchers("/auth/register/client", "/api/auth/register/client").permitAll()
+                        .requestMatchers("/auth/register/doctor", "/api/auth/register/doctor").hasRole("ADMIN")
+                        .requestMatchers("/auth/register/admin", "/api/auth/register/admin").permitAll() // временно разрешаем для первого админа
 
                         .requestMatchers("/client/dashboard").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
 
