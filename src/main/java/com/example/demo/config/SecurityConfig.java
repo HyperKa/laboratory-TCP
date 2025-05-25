@@ -31,7 +31,7 @@ public class SecurityConfig {
         http
 
                 .csrf(csrf -> csrf.disable()) // Отключаем CSRF для API
-
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
@@ -50,6 +50,7 @@ public class SecurityConfig {
 
 
                         .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")  // Вот тут тестить надо
                         //.requestMatchers(HttpMethod.GET, "/api/v1/disease-history/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")

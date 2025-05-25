@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("Servlet path: " + servletPath);
 
         if (servletPath.equals("/") ||
-                servletPath.startsWith("/auth/login") ||
+                servletPath.startsWith("/auth/login") || servletPath.equals("/api/auth/login") ||
             servletPath.equals("/auth/register/client") ||
             servletPath.equals("/auth/register/admin")) {
             System.out.println("Skipping JWT filter for: " + servletPath);
@@ -45,6 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = extractTokenFromRequest(request);  // значение токена
+        System.out.println("Token found: " + token + "Логин владельца токена: " );
 
         if (token == null) {
             System.out.println("Token is missing in the request");
@@ -91,10 +92,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Добавленная проверка куки:
+        System.out.println("Блядский куки 1");
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
+            System.out.println("Блядский куки 2");
             for (Cookie cookie : cookies) {
+                System.out.println("Блядский куки 3");
                 if ("jwt".equals(cookie.getName())) {
+                    System.out.println("Блядский куки 4");
                     return cookie.getValue();
                 }
             }

@@ -43,7 +43,7 @@ public class JwtTokenService {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(SignatureAlgorithm.HS512, secretKey) // Убираем .getBytes()
+                .signWith(SignatureAlgorithm.HS512, secretKey.getBytes()) // Убираем .getBytes()
                 .compact();
     }
 
@@ -52,7 +52,7 @@ public class JwtTokenService {
         try {
             // Парсим токен и проверяем подпись
             Jwts.parser()
-                    .setSigningKey(secretKey)
+                    .setSigningKey(secretKey.getBytes())
                     .build()
                     .parseClaimsJws(token);
 
@@ -81,7 +81,7 @@ public class JwtTokenService {
     private Claims extractAllClaims(String token) {
         try {
             return Jwts.parser()
-                    .setSigningKey(secretKey)// Убираем .getBytes() и .build()
+                    .setSigningKey(secretKey.getBytes())// Убираем .getBytes() и .build()
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
