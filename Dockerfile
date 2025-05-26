@@ -1,14 +1,14 @@
-# Используем базовый образ с OpenJDK 22
-FROM eclipse-temurin:22-jdk-jammy
+# Базовый образ с оптимизацией для Spring Boot
+FROM maven:3.9.4-eclipse-temurin-21 AS build
 
-# Автор
-LABEL maintainer="VivoBook-15"
-
-# Рабочая директория внутри контейнера
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Копируем JAR-файл из target в контейнер
-COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
+# Финальный образ
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
-# Запускаем приложение
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

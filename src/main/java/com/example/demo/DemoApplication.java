@@ -4,6 +4,7 @@ import com.example.demo.entity.Client;
 import com.example.demo.entity.Doctor;
 import com.example.demo.service.ClientService;
 import com.example.demo.service.DoctorService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -77,4 +78,9 @@ public class DemoApplication implements CommandLineRunner {
         }
          */
     }
+    @PostConstruct
+    public void printDatasourceUrl() {
+        System.out.println("Datasource URL: " + System.getenv("SPRING_DATASOURCE_URL"));
+    }
+
 }

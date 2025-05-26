@@ -64,11 +64,14 @@ public class HibernateConfig {
 @Configuration
 public class HibernateConfig {
 
+    @Value("${spring.datasource.url}")
+        private String databaseUrl;
+
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://localhost:5432/mydatabase");
+        dataSource.setUrl(databaseUrl);
         dataSource.setUsername("postgres");
         dataSource.setPassword("1234");
         return dataSource;
