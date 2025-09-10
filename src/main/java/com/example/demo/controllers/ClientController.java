@@ -34,6 +34,10 @@ public class ClientController {
         return ResponseEntity.ok(clientService.getAllClientsAsDTO());
     }
 
+    @GetMapping
+    public List<ClientDTO> getAllClientsAsDTO() {
+        return clientService.getAllClientsAsDTO();
+    }
     /*
     // READ (по ID)
     @GetMapping("/{id}")

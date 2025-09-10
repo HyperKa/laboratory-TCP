@@ -59,23 +59,21 @@ public class AuthControllerWeb {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(login, password)
             );
-
             UserDetails userDetails = userDetailsService.loadUserByUsername(login);
             String token = jwtTokenService.generateToken(userDetails);
 
-            Cookie jwtCookie = new Cookie("jwt", token);
+            Cookie jwtCookie = new Cookie("jwt",  token);
             jwtCookie.setHttpOnly(true);
             jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(60 * 60 * 24);
+            jwtCookie.setMaxAge(3600 * 24);
             response.addCookie(jwtCookie);
 
             return "redirect:/client/dashboard";
-        } catch (Exception e) {
-            return "redirect:/auth/login?error=invalid_credentials";  // сука и тут ошибку при использовании уже занятого логина нифига не понять
+        }
+        catch (Exception e) {
+            return "redirect:/auth/login?error=invalid_credentials";
         }
     }
-
-
 
 
     @PostMapping("/change-password")

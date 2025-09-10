@@ -251,7 +251,7 @@ public class ClientDashboardController {
         return "redirect:/client/appointments";
     }
 
-    @PostMapping("/profile")
+    @PostMapping("/dashboard")
     public String updateProfile(@ModelAttribute("client") ClientDTO clientDTO, Principal principal, RedirectAttributes redirectAttributes) {
         String username = principal.getName();
         /*
