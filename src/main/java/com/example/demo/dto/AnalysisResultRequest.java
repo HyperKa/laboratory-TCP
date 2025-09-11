@@ -19,7 +19,7 @@ public class AnalysisResultRequest {
         this.recordId = analysisResult.getRecordId();
         this.researchFile = analysisResult.getResearchFile();
         this.analysisDate = analysisResult.getAnalysisDate();
-        this.clientId = (long) analysisResult.getClient().getId();
+        this.clientId = analysisResult.getClient().getId();
     }
     /*
 

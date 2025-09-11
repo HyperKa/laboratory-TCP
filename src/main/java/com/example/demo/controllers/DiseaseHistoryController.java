@@ -56,7 +56,7 @@ public class DiseaseHistoryController {
 
     // READ: Получение истории болезни по ID
     @GetMapping("/{recordId}")
-    public ResponseEntity<DiseaseHistoryDTO> getRecordById(@PathVariable int recordId) {
+    public ResponseEntity<DiseaseHistoryDTO> getRecordById(@PathVariable Long recordId) {
         return diseaseHistoryService.getRecordById(recordId)
                 .map(diseaseHistoryService::convertToDTO)
                 .map(ResponseEntity::ok)
@@ -85,7 +85,7 @@ public class DiseaseHistoryController {
 
     @PutMapping("/{recordId}")
     public ResponseEntity<DiseaseHistoryDTO> updateRecord(
-            @PathVariable int recordId,
+            @PathVariable Long recordId,
             @RequestBody DiseaseHistoryDTO request) {
 
         DiseaseHistory updatedRecord = diseaseHistoryService.updateRecord(recordId, request);
@@ -94,7 +94,7 @@ public class DiseaseHistoryController {
     }
     // DELETE: Удаление истории болезни
     @DeleteMapping("/{recordId}")
-    public ResponseEntity<Void> deleteRecord(@PathVariable int recordId) {
+    public ResponseEntity<Void> deleteRecord(@PathVariable Long recordId) {
         diseaseHistoryService.deleteRecord(recordId);
         return ResponseEntity.noContent().build();
     }

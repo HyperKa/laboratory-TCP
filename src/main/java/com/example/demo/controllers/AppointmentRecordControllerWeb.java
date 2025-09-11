@@ -36,7 +36,7 @@ public class AppointmentRecordControllerWeb {
     }
 
     @GetMapping("/{id}")
-    public String viewRecord(@PathVariable Integer id, Model model) {
+    public String viewRecord(@PathVariable Long id, Model model) {
         AppointmentRecordDTO dto = appointmentRecordService.getRecordByIdAsDTO(id)
                 .orElseThrow(() -> new RuntimeException("Запись не найдена"));
         model.addAttribute("record", dto);
@@ -44,7 +44,7 @@ public class AppointmentRecordControllerWeb {
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Integer id, Model model) {
+    public String showEditForm(@PathVariable Long id, Model model) {
         AppointmentRecordDTO dto = appointmentRecordService.getRecordByIdAsDTO(id)
                 .orElseThrow(() -> new RuntimeException("Запись не найдена"));
         model.addAttribute("appointmentRecord", dto);
@@ -52,14 +52,14 @@ public class AppointmentRecordControllerWeb {
     }
 
     @PostMapping("/{id}")
-    public String updateRecord(@PathVariable Integer id, @ModelAttribute AppointmentRecordDTO dto) {
+    public String updateRecord(@PathVariable Long id, @ModelAttribute AppointmentRecordDTO dto) {
         appointmentRecordService.updateRecordFromDTO(id, dto);
         //return "redirect:/web/appointments";
         return "redirect:/client/dashboard";
     }
 
     @PostMapping("/{id}/delete")
-    public String deleteRecord(@PathVariable Integer id) {
+    public String deleteRecord(@PathVariable Long id) {
         appointmentRecordService.deleteRecord(id);
         //return "redirect:/web/appointments";
         return "redirect:/client/dashboard";

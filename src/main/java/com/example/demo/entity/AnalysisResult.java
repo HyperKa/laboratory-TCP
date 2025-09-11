@@ -36,9 +36,9 @@ public class AnalysisResult {
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    public void setClientById(Integer clientId, ClientRepository clientRepository) {
+    public void setClientById(Long clientId, ClientRepository clientRepository) {
         if (clientId != null) {
-            this.client = clientRepository.findById(Long.valueOf(clientId))
+            this.client = clientRepository.findById(clientId)
                     .orElseThrow(() -> new RuntimeException("Клиент с ID " + clientId + " не найден"));
         } else {
             this.client = null;

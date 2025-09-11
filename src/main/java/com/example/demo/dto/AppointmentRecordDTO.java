@@ -15,9 +15,9 @@ import java.time.LocalTime;
 @NoArgsConstructor
 public class AppointmentRecordDTO {
 
-    private Integer recordId;
+    private Long recordId;
 
-    private Integer clientId;
+    private Long clientId;
 
     private Long doctorId;
 
@@ -27,7 +27,7 @@ public class AppointmentRecordDTO {
 
     private String serviceName;
 
-    private Integer diseaseHistoryId;
+    private Long diseaseHistoryId;
 
     // Конструктор для преобразования из Entity в DTO
     public AppointmentRecordDTO(AppointmentRecord record) {
@@ -35,7 +35,7 @@ public class AppointmentRecordDTO {
         //this.clientId = record.getClient() != null ? record.getClient().getId() : null;
         //this.doctorId = Long.valueOf(record.getDoctor() != null ? record.getDoctor().getId() : null);
         this.clientId = record.getClientId(); // Используем геттер для ID клиента
-        this.doctorId = Long.valueOf(record.getDoctorId());
+        this.doctorId = record.getDoctorId();
         this.appointmentDate = record.getAppointmentDate();
         this.appointmentTime = record.getAppointmentTime();
         this.serviceName = record.getServiceName();

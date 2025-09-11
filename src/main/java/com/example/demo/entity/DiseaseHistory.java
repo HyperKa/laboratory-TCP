@@ -28,7 +28,7 @@ public class DiseaseHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "record_id")
-    private int recordId;
+    private Long recordId;
 
     // Связь с таблицей "Врачи"
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,7 +55,7 @@ public class DiseaseHistory {
 
     @JsonProperty("clientId")
     @Column(name = "client_id")
-    private Integer clientId;
+    private Long clientId;
 
     @JsonProperty("doctorId")
     @Column(name = "doctor_id", insertable = false, updatable = false)
@@ -67,7 +67,7 @@ public class DiseaseHistory {
     private List<AppointmentRecord> appointmentRecords;
 
     // Геттеры для связей
-    public Integer getClientId() {
+    public Long getClientId() {
         return clientId;
     }
 

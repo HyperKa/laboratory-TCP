@@ -19,7 +19,7 @@ public class Client implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private Long id;
 
     @Column(name = "age", nullable = false)
     private int age;
@@ -84,11 +84,11 @@ public class Client implements UserDetails {
         this.passport = passport;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

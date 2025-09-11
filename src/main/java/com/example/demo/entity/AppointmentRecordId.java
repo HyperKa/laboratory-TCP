@@ -20,10 +20,10 @@ import java.util.Objects;
 public class AppointmentRecordId implements Serializable {
 
     @Column(name = "client_id", nullable = false)
-    private Integer clientId;
+    private Long clientId;
 
     @Column(name = "record_id", nullable = false)
-    private Integer recordId;
+    private Long recordId;
 
     @Override
     public boolean equals(Object o) {

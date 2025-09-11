@@ -53,7 +53,7 @@ public class DiseaseHistoryService {
     }
 
     // Получение записи по ID
-    public Optional<DiseaseHistory> getRecordById(int recordId) {
+    public Optional<DiseaseHistory> getRecordById(Long recordId) {
         return diseaseHistoryRepository.findById(recordId);
     }
 
@@ -135,7 +135,7 @@ public class DiseaseHistoryService {
     }
 
     // Обновление записи истории болезни
-    public DiseaseHistory updateRecord(int recordId, DiseaseHistoryDTO dto) {
+    public DiseaseHistory updateRecord(Long recordId, DiseaseHistoryDTO dto) {
         // Находим существующую запись
         DiseaseHistory history = diseaseHistoryRepository.findById(recordId)
                 .orElseThrow(() -> new RuntimeException("Запись с ID " + recordId + " не найдена"));
@@ -171,7 +171,7 @@ public class DiseaseHistoryService {
     }
 
     // Удаление записи
-    public void deleteRecord(int recordId) {
+    public void deleteRecord(Long recordId) {
         diseaseHistoryRepository.deleteById(recordId);
     }
 
@@ -216,7 +216,7 @@ public class DiseaseHistoryService {
                 .orElseThrow(() -> new RuntimeException("Client not found with login: " + username));
 
         // Получаем все записи клиента
-        List<DiseaseHistory> history = diseaseHistoryRepository.findByClientId((long) client.getId());
+        List<DiseaseHistory> history = diseaseHistoryRepository.findByClientId(client.getId());
 
         // Преобразуем в DTO
         return history.stream()
@@ -229,7 +229,7 @@ public class DiseaseHistoryService {
         Doctor doctor = doctorRepository.findByLogin(doctorLogin)
                 .orElseThrow(() -> new RuntimeException("Доктор не найден: " + doctorLogin));
 
-        Long doctorId = (long) doctor.getId();
+        Long doctorId = doctor.getId();
 
         // Ищем все записи, связанные с этим доктором
         List<DiseaseHistory> histories = diseaseHistoryRepository.findByDoctorId(doctorId);
@@ -242,7 +242,7 @@ public class DiseaseHistoryService {
 
     // для фронта:
 
-    public Optional<DiseaseHistoryDTO> getRecordByIdAsDTO(int id) {
+    public Optional<DiseaseHistoryDTO> getRecordByIdAsDTO(Long id) {
         return diseaseHistoryRepository.findById(id)
                 .map(this::convertToDTO);
     }
@@ -264,7 +264,7 @@ public class DiseaseHistoryService {
                 .orElseThrow(() -> new RuntimeException("Клиент с логином " + username + " не найден"));
 
         // Получаем все DiseaseHistory по clientId
-        List<DiseaseHistory> histories = diseaseHistoryRepository.findByClientId((long) client.getId());
+        List<DiseaseHistory> histories = diseaseHistoryRepository.findByClientId(client.getId());
 
         // Преобразуем в DTO (без необходимости включать сам объект Client)
         return histories.stream()
