@@ -21,7 +21,7 @@
     </nav>
 </header>
 
-<!-- 🔽 Контент дочерней страницы -->
+<!-- 🔽 Контент дочерней страницы, вставка client/dashboard.html -->
 <div th:fragment="layout(content)">
     <div th:replace="${content}"></div>
 </div>
@@ -30,5 +30,6 @@
     <p>&copy; 2023 Медицинская система</p>
 </footer>
 
+<script th:src="@{/js/dist/bundle.js}"></script>
 </body>
 </html>

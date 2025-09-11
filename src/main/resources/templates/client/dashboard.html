@@ -88,7 +88,8 @@
             <h2 th:if="${role == 'ROLE_DOCTOR'}">Ваши пациенты</h2>
             <h2 th:if="${role == 'ROLE_ADMIN'}">Все клиенты</h2>
             <h2>Список пациентов</h2>
-            <th:block th:replace="~{clients/list :: content}"></th:block>
+            <!--  <th:block th:replace="~{clients/list :: content}"></th:block>  -->
+            <div id="react-patient-table-container"></div>
         </div>
 
         <!-- Модальные окна -->
