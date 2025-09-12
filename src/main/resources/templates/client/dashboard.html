@@ -19,7 +19,7 @@
         </div>
 
         <h2 th:unless="${isAdminOrDoctor}">Ваш профиль</h2>
-        <form th:unless="${isAdminOrDoctor}" th:action="@{/client/dashboard}" method="post" th:object="${client}" >
+        <form th:unless="${isAdminOrDoctor}" th:action="@{/client/profile}" method="post" th:object="${client}" >
             <label>Имя:
                 <input type="text" th:field="*{firstName}" required/>
             </label><br/>
