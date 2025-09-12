@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="maket(local_insert)">
 <head>
     <meta charset="UTF-8">
     <title th:text="${pageTitle} ?: 'Медицинская система'">Медицинская система</title>
@@ -13,7 +13,8 @@
 
 <!-- Основной контент -->
 <main>
-    <div th:insert="${content}"></div>
+    <h2>Основной шаблон base.html</h2>
+    <div th:insert="${local_insert}"></div>
 </main>
 
 <!-- Вставка footer -->

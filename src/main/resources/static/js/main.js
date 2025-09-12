@@ -109,6 +109,15 @@ window.viewRecord = function(recordId) {
     window.location.href = `/web/analysis-results/${recordId}`;
 };
 
+// Функция для просмотра записи клиента
+window.viewClientData = function(recordId) {
+    if (!recordId) {
+        console.error("recordId не указан");
+        return;
+    }
+    window.location.href = `/web/clients/${recordId}`;
+}
+
 window.viewDoctor = function(recordId) {
     if (!recordId) {
         console.error("recordId не указан");

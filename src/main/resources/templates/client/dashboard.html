@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
-<th:block th:replace="~{layout/base :: layout(~{::content})}">
-    <th:block th:fragment="content">
+<th:block th:replace="~{layout/base :: maket(~{::dashboard})}">
+    <th:block th:fragment="dashboard">
 
+        <h2>Переход на dashboard.html после login.html</h2>
         <h1>Добро пожаловать в личный кабинет</h1>
+
         <div class="logout-container">
             <button id="logoutBtn">Выйти</button>
             <script src="/js/logout.js"></script>

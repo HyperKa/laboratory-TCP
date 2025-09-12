@@ -1,3 +1,5 @@
+
+/*
 package com.example.demo.controllers;
 
 import com.example.demo.dto.ClientDTO;
@@ -149,3 +151,5 @@ public class RegistrationControllerWeb {
         return "register_admin"; // Имя Thymeleaf-шаблона для страницы регистрации админа
     }
 }
+
+*/

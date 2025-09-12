@@ -1,6 +1,7 @@
 <!-- login.html -->
-<th:block th:replace="~{layout/base :: layout(~{::content})}">
-    <th:block th:fragment="content">
+<th:block th:replace="~{layout/base :: maket(~{::login})}">
+    <th:block th:fragment="login">
+        <h2>Использование login.html</h2>
         <h2>Вход в систему</h2>
         <form th:action="@{/auth/login}" method="post">
             <div>

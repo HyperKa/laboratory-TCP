@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="~{layout/base :: layout(~{::content})}">
-    <th:block th:fragment="content">
+<th:block th:replace="~{layout/base :: maket(~{::register})}">
+    <th:block th:fragment="register">
         <main class="form-container">
             <h2>Регистрация клиента</h2>
             <form th:action="@{/auth/register/client}" method="post" class="form" th:object="${clientDTO}">

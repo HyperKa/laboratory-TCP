@@ -28,7 +28,7 @@
             <td th:text="${client.login}"></td>
             <td sec:authorize="hasAnyRole('ADMIN', 'DOCTOR')">
                 <button th:onclick="|openEditClientModal(${client.id})|" class="button">Редактировать</button>
-                <button th:onclick="viewRecord([[${client.id}]])" class="button">Просмотр</button>
+                <button th:onclick="viewClientData([[${client.id}]])" class="button">Просмотр</button>
                 <button th:onclick="deleteRecord([[${client.id}]], 'doctor')" class="button">Удалить</button>
             </td>
         </tr>
