@@ -16,6 +16,7 @@ import com.example.demo.repository.AnalysisResultRepository;
 import com.example.demo.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -162,7 +163,7 @@ public class AnalysisResultService {
     }
 
 
-    // Получение записи по ID для клиента
+    // Получение списка анализов по логину клиента
     public List<AnalysisResultRequest> getAllByClientUsername(String username) {
         // Получаем клиента по логину
         Client client = clientRepository.findByLogin(username)
@@ -172,6 +173,16 @@ public class AnalysisResultService {
         List<AnalysisResult> analysisResults = analysisResultRepository.findByClientId((long) client.getId());
 
         // Преобразуем в DTO (без необходимости включать сам объект Client)
+        return analysisResults.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Получение анализов по id клиента
+    public List<AnalysisResultRequest> getResultsByClientId(Long clientId) {
+        List<AnalysisResult> analysisResults = analysisResultRepository.findByClientId(clientId);
+
+        // Преобразуем каждую найденную сущность в DTO
         return analysisResults.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

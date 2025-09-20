@@ -55,10 +55,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")  // Вот тут тестить надо
                         //.requestMatchers(HttpMethod.GET, "/api/v1/disease-history/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
                         //.requestMatchers(HttpMethod.GET, "/api/v1/clients").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/analysis-results/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/analysis-results/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/appointment-records/{recordId}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/disease-history/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/disease-history/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
 
 
                         // Доступ к веб-контроллеру /web/appointments для CLIENT, DOCTOR, ADMIN

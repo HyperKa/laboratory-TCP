@@ -86,7 +86,7 @@ public class AppointmentRecord {
         return client != null ? Math.toIntExact(client.getId()) : null;
     }
 
-    public Integer getDoctorId() {
+    public Long getDoctorId() {
         return doctor != null ? doctor.getId() : null;
     }
 

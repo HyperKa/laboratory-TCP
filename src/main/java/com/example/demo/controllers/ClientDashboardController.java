@@ -62,7 +62,7 @@ public class ClientDashboardController {
         System.out.println("Current user: " + principal.getName());
         System.out.println("Roles: " + auth.getAuthorities());
 
-        // 1. Получаем список записей на приём в зависимости от роли
+        // список записей на приём в зависимости от роли логина клиента
         List<AppointmentRecordDTO> records;
         if ("ROLE_CLIENT".equals(role)) {
             Client client = clientService.findByLogin(username)
@@ -130,6 +130,7 @@ public class ClientDashboardController {
             model.addAttribute("client", new ClientDTO());
         }
 
+        model.addAttribute("role", role);  // для ролей на react
         model.addAttribute("records", records);
         model.addAttribute("diseaseHistories", diseaseHistories);
         model.addAttribute("analysisResults", analysisResults);

@@ -85,121 +85,21 @@
         -->
 
 
-        <!-- Список пациентов -->
+        <!-- Список пациентов (React) -->
         <div th:if="${isAdminOrDoctor}">
-            <h2 th:if="${role == 'ROLE_DOCTOR'}">Ваши пациенты</h2>
-            <h2 th:if="${role == 'ROLE_ADMIN'}">Все клиенты</h2>
             <h2>Список пациентов</h2>
-            <th:block th:replace="~{clients/list :: content}"></th:block>
+            <div id="react-patient-manager-container"></div>
         </div>
 
-        <!-- Модальные окна -->
+        <hr/>
+
+
+        <!-- Записи на приём (React) -->
         <div th:if="${isAdminOrDoctor}">
-            <!-- <th:block th:insert="~{clients/edit :: content}"></th:block> -->
-            <th:block th:insert="~{clients/view :: content(${client})}"></th:block>
-
+            <h2>Записи всех пациентов</h2>
+            <div id="react-appointment-record-manager-container"></div>
         </div>
 
-        <!-- Модальное окно редактирования клиента -->
-        <div id="editClientModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModal('editClientModal')">&times;</span>
-                <h2>Редактировать данные клиента</h2>
-                <form id="editClientForm" method="post">
-                    <input type="hidden" name="id" id="client_id"/>
-                    <label>Имя:
-                        <input type="text" id="client_firstName" name="firstName" required/>
-                    </label>
-                    <label>Фамилия:
-                        <input type="text" id="client_lastName" name="lastName" required/>
-                    </label>
-                    <label>Логин:
-                        <input type="text" id="client_login" name="login" required/>
-                    </label>
-                    <label>Пароль:
-                        <input type="password" id="client_password" name="password"/>
-                    </label>
-                    <label>Возраст:
-                        <input type="number" id="client_age" name="age" required/>
-                    </label>
-                    <label>Пол:
-                        <input type="text" id="client_gender" name="gender" required/>
-                    </label>
-                    <label>Адрес:
-                        <input type="text" id="client_address" name="address" required/>
-                    </label>
-                    <label>Паспорт:
-                        <input type="text" id="client_passport" name="passport" required/>
-                    </label><br/>
-                    <button type="submit" class="button">Сохранить изменения</button>
-                    <button type="button" class="button button-cancel" onclick="closeModal('editClientModal')">Отмена</button>
-                </form>
-            </div>
-        </div>
-
-        <hr/>
-
-        <!-- Записи на приём -->
-        <h2 th:unless="${isAdminOrDoctor}">Ваши записи на приём</h2>
-        <h2 th:if="${isAdminOrDoctor}">Записи всех пациентов</h2>
-
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Дата</th>
-                    <th>Время</th>
-                    <th>Услуга</th>
-                    <th th:if="${isAdminOrDoctor}">ID пациента</th>
-                    <th>Врач</th>
-                    <th th:if="${isAdminOrDoctor}">Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="record : ${records}">
-                    <td th:text="${record.appointmentDate}">2025-05-01</td>
-                    <td th:text="${record.appointmentTime}">10:00</td>
-                    <td th:text="${record.serviceName}">Терапия</td>
-
-                    <!-- Только доктор и админ видят ID пациента -->
-                    <td th:if="${isAdminOrDoctor}" th:text="${record.clientId}">1</td>
-
-                    <!-- Для клиента показываем врача
-                    <td th:unless="${isAdminOrDoctor}" th:text="${record.doctor.firstName + ' ' + record.doctor.lastName}">
-                        Иванов И.И.
-                    </td>  -->
-                    <td th:text="${record.doctorId}">ID врача</td>
-
-
-                    <!-- Доступные действия -->
-                    <td th:if="${isAdminOrDoctor}">
-                        <a th:href="@{'/web/appointments/' + ${record.recordId} + '/edit'}">Редактировать</a> |
-                        <form th:action="@{'/web/appointments/' + ${record.recordId} + '/delete'}" method="post" style="display:inline;">
-                            <button type="submit">Удалить</button>
-                        </form>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <hr/>
-
-        <!-- Кнопка добавления записи -->
-        <h2 th:unless="${isAdminOrDoctor}">Добавить новую запись</h2>
-        <form th:unless="${isAdminOrDoctor}" action="/web/appointments" method="post">
-            <label>Дата:
-                <input type="date" name="appointmentDate" required />
-            </label><br/>
-            <label>Время:
-                <input type="time" name="appointmentTime" required />
-            </label><br/>
-            <label>Услуга:
-                <input type="text" name="serviceName" required />
-            </label><br/>
-            <label>ID врача:
-                <input type="number" name="doctorId" required />
-            </label><br/>
-            <button type="submit">Сохранить</button>
-        </form>
 
         <!-- Сообщение для доктора / админа -->
         <div th:if="${isAdminOrDoctor}">
@@ -207,6 +107,13 @@
         </div>
 
         <hr/>
+
+        <!-- История болезней React -->
+        <div>
+            <h2 th:if="${isAdminOrDoctor}">История болезни</h2>
+            <h2 th:unless="${isAdminOrDoctor}">Ваша история болезни</h2>
+            <div id="react-disease-history-manager-container" th:attr="data-user-role=${role}"></div>
+        </div>
 
         <!-- История болезней -->
         <h2>История болезней</h2>
@@ -248,63 +155,17 @@
         <hr/>
 
         <!-- Результаты анализов -->
-        <h2 th:unless="${isAdminOrDoctor}">Ваши результаты анализов</h2>
-        <h2 th:if="${isAdminOrDoctor}">Все результаты анализов</h2>
-        <th:block th:replace="~{analysis-results/list :: content}"></th:block>
-
-
-        <!-- <a th:if="${isAdminOrDoctor}" href="@{'web/analysis-results/new'}" onclick="openAddAnalysisModal()">Добавить результат анализа</a> -->
-        <a href="#" sec:authorize="hasAnyRole('ADMIN', 'DOCTOR')" onclick="openAddAnalysisModal()">Добавить результат анализа</a>
-
-
-        <hr/>
-        <!-- Модальное окно добавления анализа -->
-        <div id="addAnalysisModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModal('addAnalysisModal')">&times;</span>
-                <h2>Добавить результат анализа</h2>
-                <form id="addAnalysisForm" method="post" action="/web/analysis-results">
-                    <label th:if="${isAdminOrDoctor}">
-                        Клиент:
-                        <select id="analysisClientId" name="clientId" required>
-                            <option value="">Выберите клиента</option>
-                            <option th:each="client : ${allClients}"
-                                    th:value="${client.id}"
-                                    th:text="${client.firstName + ' ' + client.lastName + ' (' + client.login + ')'}">
-                            </option>
-                        </select>
-                    </label>
-                    <label>Файл исследования:
-                        <input type="text" id="researchFile" name="researchFile" required/>
-                    </label><br/>
-                    <label>Дата анализа:
-                        <input type="date" id="analysisDate" name="analysisDate" required/>
-                    </label><br/>
-                    <button type="submit" class="button">Сохранить</button>
-                    <button type="button" class="button button-cancel" onclick="closeModal('addAnalysisModal')">Закрыть</button>
-                </form>
-            </div>
+        <div>
+            <h2 th:if="${isAdminOrDoctor}">Все результаты анализов</h2>
+            <h2 th:unless="${isAdminOrDoctor}">Ваши результаты анализов</h2>
+            <div id="react-analysis-result-manager-container" th:attr="data-user-role=${role}"></div>
         </div>
-        <!-- Модальное окно редактирования анализа -->
-        <div id="editAnalysisModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModal('editAnalysisModal')">&times;</span>
-                <h2>Редактировать анализ</h2>
-                <form id="editAnalysisForm" method="post">
-                    <input type="hidden" name="recordId" id="editRecordId"/>
 
-                    <label>Файл исследования:
-                        <input type="text" name="researchFile" id="editResearchFile" required/>
-                    </label><br/>
 
-                    <label>Дата анализа:
-                        <input type="date" name="analysisDate" id="editAnalysisDate" required/>
-                    </label><br/>
-
-                    <button type="submit" class="button">Сохранить</button>
-                    <button type="button" class="button button-cancel" onclick="closeModal('editAnalysisModal')">Закрыть</button>
-                </form>
-            </div>
+        <!-- Таблица докторов React -->
+        <div>
+            <h2>Таблица докторов</h2>
+            <div id="react-doctor-manager-container" th:attr="data-user-role=${role}"></div>
         </div>
 
         <!-- Таблица докторов -->

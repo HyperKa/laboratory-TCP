@@ -5,10 +5,12 @@ import com.example.demo.dto.DiseaseHistoryDTO;
 import com.example.demo.entity.AppointmentRecord;
 import com.example.demo.entity.DiseaseHistory;
 import com.example.demo.service.DiseaseHistoryService;
+// import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,6 +47,8 @@ public class DiseaseHistoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(diseaseHistoryService.convertToDTO(createdRecord));
     }
     // READ: Получение всех историй болезни
+
+    /*
     @GetMapping
     public ResponseEntity<List<DiseaseHistoryDTO>> getAllRecords() {
         List<DiseaseHistory> records = (List<DiseaseHistory>) diseaseHistoryService.getAllRecords();
@@ -52,6 +56,20 @@ public class DiseaseHistoryController {
                 .map(diseaseHistoryService::convertToDTO)
                 .toList();
         return ResponseEntity.ok(dtos);
+    }
+    */
+
+    @GetMapping
+    public List<DiseaseHistoryDTO> getHistories(Authentication authentication) {
+        boolean isAdminOrDoctor = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") ||
+                        a.getAuthority().equals("ROLE_DOCTOR"));
+
+        if (isAdminOrDoctor) {
+            return diseaseHistoryService.getAllRecordsAsDTO();
+        } else {
+            return diseaseHistoryService.getHistoryForClient(authentication.getName());
+        }
     }
 
     // READ: Получение истории болезни по ID
