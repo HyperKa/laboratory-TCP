@@ -104,7 +104,7 @@ export default function PatientManager() {
                     <th>ID</th>
                     <th>Имя</th>
                     <th>Логин</th>
-                    <th>Действия</th>
+                    <th className="actions-column">Действия</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -113,10 +113,12 @@ export default function PatientManager() {
                         <td>{p.id}</td>
                         <td>{p.firstName} {p.lastName}</td>
                         <td>{p.login}</td>
-                        <td>
-                            <button className="action-button view" onClick={() => handleOpenViewModal(p)}>Просмотр</button>
-                            <button className="action-button edit" onClick={() => handleOpenEditModal(p)}>Редактировать</button>
-                            <button className="action-button delete" onClick={() => handleDelete(p.id)}>Удалить</button>
+                        <td className="col-actions">
+                            <div className="actions-container">
+                                <button className="action-button view" onClick={() => handleOpenViewModal(p)}>Просмотр</button>
+                                <button className="action-button edit" onClick={() => handleOpenEditModal(p)}>Редактировать</button>
+                                <button className="action-button delete" onClick={() => handleDelete(p.id)}>Удалить</button>
+                            </div>
                         </td>
                     </tr>
                 ))}
@@ -130,7 +132,7 @@ export default function PatientManager() {
                         <span className="close-btn" onClick={handleCloseModal}>&times;</span>
                         <h2>Информация о клиенте</h2>
                         <p>ID: {selectedPatient.id}</p>
-                        <p>Возраст: {selectedPatient.firstName}</p>
+                        <p>Возраст: {selectedPatient.age}</p>
                         <p>Пол: {selectedPatient.gender}</p>
                         <p>Имя: {selectedPatient.firstName}</p>
                         <p>Фамилия: {selectedPatient.lastName}</p>
@@ -170,8 +172,10 @@ export default function PatientManager() {
                             <input name="login" type="text" value={editingPatient.login} onChange={handleInputChange} />
 
                             <br/><br/>
-                            <button type="submit">Сохранить</button>
-                            <button type="button" onClick={handleCloseModal}>Отмена</button>
+                            <div className="modal-actions">
+                                <button type="submit" className="button">Сохранить</button>
+                                <button type="submit" className="button" onClick={handleCloseModal}>Отмена</button>
+                            </div>
                         </form>
                     </div>
                 </div>

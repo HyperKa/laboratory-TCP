@@ -9,12 +9,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.security.Principal;
 import java.util.List;
@@ -22,6 +20,8 @@ import java.util.List;
 @Controller
 @RequestMapping("/client")
 public class ClientDashboardController {
+
+    @Autowired private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private ClientService clientService;
@@ -250,6 +250,39 @@ public class ClientDashboardController {
         appointmentRecordService.createRecordFromDTO(appointmentDTO, username);
         redirectAttributes.addFlashAttribute("success", "Запись успешно создана!");
         return "redirect:/client/appointments";
+    }
+
+    @PostMapping("/change-password")
+    public String changePasswordWeb(@RequestParam String oldPassword,
+                                    @RequestParam String newPassword,
+                                    @RequestParam String confirmPassword,
+                                    Authentication authentication,
+                                    RedirectAttributes redirectAttributes) {
+
+        // --- 1. Проверка на совпадение нового пароля и подтверждения ---
+        if (!newPassword.equals(confirmPassword)) {
+            redirectAttributes.addFlashAttribute("ошибка", "Новый и старый пароли не совпадают!");
+            return "redirect:/client/dashboard"; // Возвращаемся на дашборд с сообщением об ошибке
+        }
+
+        // --- 2. Получаем данные текущего пользователя ---
+        String username = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElseThrow(() -> new RuntimeException("Роль не найдена"));
+
+        // --- 3. Вызываем сервис для смены пароля ---
+        try {
+            userDetailsService.changePassword(username, role, oldPassword, newPassword);
+            redirectAttributes.addFlashAttribute("успешно", "Пароль успешно изменен!");
+        } catch (IllegalArgumentException e) {
+            // Если сервис выбросил ошибку (например, "Неверный старый пароль")
+            redirectAttributes.addFlashAttribute("ошибка", e.getMessage());
+        }
+
+        // --- 4. Возвращаемся на дашборд в любом случае ---
+        return "redirect:/client/dashboard";
     }
 
     @PostMapping("/profile")

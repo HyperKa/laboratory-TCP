@@ -107,7 +107,7 @@ export default function DoctorManager() {
                 <th>Специализация</th>
                 <th>Опыт</th>
                 <th>Логин</th>
-                {isAdminOrDoctor && <th className='action-column'>Действия</th>}
+                {isAdminOrDoctor && <th className='actions-column'>Действия</th>}
             </tr>
             </thead>
             <tbody>
@@ -119,10 +119,12 @@ export default function DoctorManager() {
                     <td>{doctor.specialization}</td>
                     <td>{doctor.experience}</td>
                     <td>{doctor.login}</td>
-                    {isAdminOrDoctor && (<td className='action-column'>
-                        <button className='action-button view' onClick={() => handleOpenViewModal(doctor)}>Просмотр</button>
-                        <button className='action-button edit' onClick={() => handleOpenEditModal(doctor)}>Редактировать</button>
-                        <button className='action-button delete' onClick={() => handleDelete(doctor.id)}>Удалить</button>
+                    {isAdminOrDoctor && (<td className='col-actions'>
+                        <div className="actions-container">
+                            <button className='action-button view' onClick={() => handleOpenViewModal(doctor)}>Просмотр</button>
+                            <button className='action-button edit' onClick={() => handleOpenEditModal(doctor)}>Редактировать</button>
+                            <button className='action-button delete' onClick={() => handleDelete(doctor.id)}>Удалить</button>
+                        </div>
                     </td>)}
                 </tr>
             ))}
@@ -165,8 +167,10 @@ export default function DoctorManager() {
                             <label>Логин:</label>
                             <input name="login" type="text" value={editingDoctor.login} onChange={handleInputChange} />
 
-                            <button type="submit">Сохранить</button>
-                            <button type="button" onClick={handleCloseModal}>Отмена</button>
+                            <div className="modal-actions">
+                                <button type="submit">Сохранить</button>
+                                <button type="submit" onClick={handleCloseModal}>Отмена</button>
+                            </div>
                         </form>
                     </div>
                 </div>

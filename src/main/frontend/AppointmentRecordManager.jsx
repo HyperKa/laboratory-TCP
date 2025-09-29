@@ -101,10 +101,12 @@ export default function AppointmentRecordManager() {
                         <td>{record.serviceName}</td>
                         <td>{record.clientId}</td>
                         <td>{record.doctorId}</td>
-                        <td className="actions-column">
-                            <button className="action-button view" onClick={() => handleOpenViewModal(record)}>Просмотр</button>
-                            <button className="action-button edit" onClick={() => handleOpenEditModal(record)}>Редактировать</button>
-                            <button className="action-button delete" onClick={() => handleDelete(record.recordId)}>Удалить</button>
+                        <td className="col-actions">
+                            <div className="actions-container">
+                                <button className="action-button view" onClick={() => handleOpenViewModal(record)}>Просмотр</button>
+                                <button className="action-button edit" onClick={() => handleOpenEditModal(record)}>Редактировать</button>
+                                <button className="action-button delete" onClick={() => handleDelete(record.recordId)}>Удалить</button>
+                            </div>
                         </td>
                     </tr>
                 ))}
@@ -145,8 +147,10 @@ export default function AppointmentRecordManager() {
                             <label>Услуга:</label>
                             <input name="serviceName" type="text" value={editingRecord.serviceName} onChange={handleInputChange} />
 
-                            <button type="submit">Сохранить</button>
-                            <button type="button" onClick={handleCloseModal}>Отмена</button>
+                            <div className="modal-actions">
+                                <button type="submit">Сохранить</button>
+                                <button type="submit" onClick={handleCloseModal}>Отмена</button>
+                            </div>
                         </form>
                     </div>
                 </div>

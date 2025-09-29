@@ -199,23 +199,10 @@ public class AuthControllerWeb {
     */
 
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
-        String username = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(grantedAuthority -> grantedAuthority.getAuthority()) // например: ROLE_CLIENT
-                .orElseThrow(() -> new RuntimeException("Роль не найдена"));
-
-        if (request.getOldPassword().equals(request.getNewPassword())) {
-            return ResponseEntity.badRequest().body("Новый и старый пароли должны различаться, брат");
-        }
-
-        try {
-            userDetailsService.changePassword(username, role, request.getOldPassword(), request.getNewPassword());
-            return ResponseEntity.ok("Пароль успешно изменен");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    public String changePassword(Model model, Authentication authentication) {
+        System.out.println("Rendering template: register_client");
+        model.addAttribute("clientDTO", new ClientDTO());
+        return "change_password";
     }
 
     @PostMapping("/logout")

@@ -104,10 +104,12 @@ export default function AnalysisResultManager() {
                         <td>{result.researchFile}</td>
                         <td>{result.analysisDate}</td>
                         <td>{result.clientId}</td>
-                        <td className="actions-column">
-                            <button className="action-button view" onClick={() => handleOpenViewModal(result)}>Просмотр</button>
-                            <button className="action-button edit" onClick={() => handleOpenEditModal(result)}>Редактировать</button>
-                            <button className="action-button delete" onClick={() => handleDelete(result.recordId)}>Удалить</button>
+                        <td className="col-actions">
+                            <div className="actions-container">
+                                <button className="action-button view" onClick={() => handleOpenViewModal(result)}>Просмотр</button>
+                                <button className="action-button edit" onClick={() => handleOpenEditModal(result)}>Редактировать</button>
+                                <button className="action-button delete" onClick={() => handleDelete(result.recordId)}>Удалить</button>
+                            </div>
                         </td>
                     </tr>
                 ))}
@@ -139,8 +141,10 @@ export default function AnalysisResultManager() {
                                 <label>Дата анализа:</label>
                                 <input name="analysisDate" type="date" value={editingResult.analysisDate} onChange={handleInputChange} />
 
-                                <button type="submit">Сохранить</button>
-                                <button type="button" onClick={handleCloseModal}>Отмена</button>
+                                <div className="modal-actions">
+                                    <button type="submit">Сохранить</button>
+                                    <button type="submit" onClick={handleCloseModal}>Отмена</button>
+                                </div>
                             </form>
                         </div>
                     </div>
