@@ -124,9 +124,11 @@ public class ClientDashboardController {
 
         // 7. Передача данных в модель
         if (clientDTO != null) {
+            System.out.println("Данные клиента есть");
             model.addAttribute("client", clientDTO);
         }
         else {
+            System.out.println("Проблема с данными");
             model.addAttribute("client", new ClientDTO());
         }
 
@@ -254,6 +256,12 @@ public class ClientDashboardController {
     @PostMapping("/dashboard")
     public String updateProfile(@ModelAttribute("client") ClientDTO clientDTO, Principal principal, RedirectAttributes redirectAttributes) {
         String username = principal.getName();
+        if (clientDTO != null) {
+            System.out.println("Тело не пустое");
+        }
+        else {
+            System.out.println("Тело пустое");
+        }
         /*
         Long clientId = clientDTO.getId();
         if (clientId == null) {
