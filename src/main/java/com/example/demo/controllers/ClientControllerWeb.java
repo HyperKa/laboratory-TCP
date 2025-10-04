@@ -68,11 +68,11 @@ public class ClientControllerWeb {
     }
 
     @PostMapping("/{id}")
-    public String updateRecord(@PathVariable Integer id, @ModelAttribute ClientDTO dto) {
+    public String updateRecord(@PathVariable Long id, @ModelAttribute ClientDTO dto) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         System.out.println("ID записи: " + id);
-        clientService.updateClientFromDTO(Long.valueOf(id), dto);  // вот тут если передавать login - возьмет логин текущего пользователя системы - доктора, а не нужного клиента
+        clientService.updateClientFromDTO(id, dto);  // вот тут если передавать login - возьмет логин текущего пользователя системы - доктора, а не нужного клиента
         //return "redirect:/web/appointments";
         return "redirect:/client/dashboard";
     }

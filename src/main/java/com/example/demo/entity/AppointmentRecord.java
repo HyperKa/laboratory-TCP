@@ -24,7 +24,7 @@ public class AppointmentRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "record_id", nullable = false)
-    private Integer recordId;
+    private Long recordId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
@@ -53,9 +53,9 @@ public class AppointmentRecord {
     private DiseaseHistory diseaseHistory;
 
     // Метод для установки клиента по ID
-    public void setClientById(Integer clientId, ClientRepository clientRepository) {
+    public void setClientById(Long clientId, ClientRepository clientRepository) {
         if (clientId != null) {
-            this.client = clientRepository.findById(Long.valueOf(clientId))
+            this.client = clientRepository.findById(clientId)
                     .orElseThrow(() -> new RuntimeException("Клиент с ID " + clientId + " не найден"));
         } else {
             this.client = null;
@@ -75,22 +75,22 @@ public class AppointmentRecord {
     // Метод для установки истории болезни по ID
     public void setDiseaseHistoryById(Long diseaseHistoryId, DiseaseHistoryRepository diseaseHistoryRepository) {
         if (diseaseHistoryId != null) {
-            this.diseaseHistory = diseaseHistoryRepository.findById(Math.toIntExact(diseaseHistoryId))
+            this.diseaseHistory = diseaseHistoryRepository.findById(diseaseHistoryId)
                     .orElseThrow(() -> new RuntimeException("История болезни с ID " + diseaseHistoryId + " не найдена"));
         } else {
             this.diseaseHistory = null;
         }
     }
 
-    public Integer getClientId() {
-        return client != null ? Math.toIntExact(client.getId()) : null;
+    public Long getClientId() {
+        return client != null ? client.getId() : null;
     }
 
-    public Integer getDoctorId() {
+    public Long getDoctorId() {
         return doctor != null ? doctor.getId() : null;
     }
 
-    public Integer getDiseaseHistoryId() {
+    public Long getDiseaseHistoryId() {
         return diseaseHistory != null ? diseaseHistory.getRecordId() : null;
     }
 

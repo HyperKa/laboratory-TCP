@@ -50,7 +50,7 @@ public class AnalysisResultController {
 
     @PutMapping("/{recordId}")
     public ResponseEntity<AnalysisResultRequest> updateRecord(
-            @PathVariable long recordId,
+            @PathVariable Long recordId,
             @RequestBody AnalysisResultRequest request) {
 
         AnalysisResult updatedRecord = analysisResultService.updateAnalysisResult(recordId, request);

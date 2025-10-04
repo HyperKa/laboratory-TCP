@@ -101,7 +101,7 @@ public class AppointmentRecordController {
 
     // Получение записи по ID
     @GetMapping("/{recordId}")
-    public ResponseEntity<AppointmentRecordDTO> getRecordById(@PathVariable Integer recordId) {
+    public ResponseEntity<AppointmentRecordDTO> getRecordById(@PathVariable Long recordId) {
         return appointmentRecordService.getRecordByIdAsDTO(recordId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -118,7 +118,7 @@ public class AppointmentRecordController {
     // Обновление записи
     @PutMapping("/{recordId}")
     public ResponseEntity<AppointmentRecordDTO> updateRecord(
-            @PathVariable Integer recordId,
+            @PathVariable Long recordId,
             @RequestBody AppointmentRecordDTO dto) {
 
         AppointmentRecord updatedRecord = appointmentRecordService.updateRecordFromDTO(recordId, dto);
@@ -127,7 +127,7 @@ public class AppointmentRecordController {
 
     // Удаление записи
     @DeleteMapping("/{recordId}")
-    public ResponseEntity<Void> deleteRecord(@PathVariable Integer recordId) {
+    public ResponseEntity<Void> deleteRecord(@PathVariable Long recordId) {
         appointmentRecordService.deleteRecord(recordId);
         return ResponseEntity.noContent().build();
     }

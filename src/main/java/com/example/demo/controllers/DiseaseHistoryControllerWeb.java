@@ -41,7 +41,7 @@ public class DiseaseHistoryControllerWeb {
 
     // Показать конкретную историю болезни
     @GetMapping("/{id}")
-    public String viewHistory(@PathVariable int id, Model model) {
+    public String viewHistory(@PathVariable Long id, Model model) {
         DiseaseHistoryDTO dto = diseaseHistoryService.getRecordByIdAsDTO(id)
                 .orElseThrow(() -> new RuntimeException("История болезни не найдена"));
         model.addAttribute("diseaseHistory", dto);
@@ -50,7 +50,7 @@ public class DiseaseHistoryControllerWeb {
 
     // Показать форму редактирования
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable int id, Model model) {
+    public String showEditForm(@PathVariable Long id, Model model) {
         DiseaseHistoryDTO dto = diseaseHistoryService.getRecordByIdAsDTO(id)
                 .orElseThrow(() -> new RuntimeException("История болезни не найдена"));
         model.addAttribute("diseaseHistory", dto);
@@ -59,14 +59,14 @@ public class DiseaseHistoryControllerWeb {
 
     // Обработка формы редактирования
     @PostMapping("/{id}")
-    public String updateHistory(@PathVariable int id, @ModelAttribute DiseaseHistoryDTO dto) {
+    public String updateHistory(@PathVariable Long id, @ModelAttribute DiseaseHistoryDTO dto) {
         diseaseHistoryService.updateRecord(id, dto);
         return "redirect:/client/dashboard";
     }
 
     // Удаление
     @PostMapping("/{id}/delete")
-    public String deleteHistory(@PathVariable int id) {
+    public String deleteHistory(@PathVariable Long id) {
         diseaseHistoryService.deleteRecord(id);
         return "redirect:/client/dashboard";
     }

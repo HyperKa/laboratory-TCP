@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 public class DoctorDTO {
-    private int id;
+    private Long id;
     private String lastName;
     private String firstName;
     private String specialization;
@@ -24,7 +24,7 @@ public class DoctorDTO {
 
     // Конструктор для преобразования из Entity в DTO
     public DoctorDTO(Doctor doctor) {
-        this.id = (int) doctor.getId();
+        this.id = doctor.getId();
         this.lastName = doctor.getLastName();
         this.firstName = doctor.getFirstName();
         this.specialization = doctor.getSpecialization();

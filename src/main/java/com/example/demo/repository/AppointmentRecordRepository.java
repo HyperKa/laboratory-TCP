@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-public interface AppointmentRecordRepository extends JpaRepository<AppointmentRecord, Integer> {
+public interface AppointmentRecordRepository extends JpaRepository<AppointmentRecord, Long> {
     List<AppointmentRecord> findByClient(Client client);
     //List<AppointmentRecord> findByClientId(Long clientId);
     //List<AppointmentRecord> findByClientId(Integer clientId);

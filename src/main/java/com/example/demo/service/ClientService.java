@@ -148,7 +148,7 @@ public class ClientService {
         Client client = new Client();
         //client.setId(Math.toIntExact(dto.getId()));
         if (dto.getId() != null) {
-            client.setId(Math.toIntExact(dto.getId())); // Устанавливаем id только если оно не null
+            client.setId(dto.getId()); // Устанавливаем id только если оно не null
         }
         client.setAge(dto.getAge());
         client.setGender(dto.getGender());
@@ -235,7 +235,7 @@ public class ClientService {
                     }
 
                     ClientDTO dto = new ClientDTO();
-                    dto.setId(Long.valueOf(client.getId()));
+                    dto.setId(client.getId());
                     dto.setFirstName(client.getFirstName());
                     dto.setLastName(client.getLastName());
                     dto.setLogin(client.getLogin());

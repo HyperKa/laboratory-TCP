@@ -50,7 +50,7 @@ public class ClientController {
 
         if (user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
             Optional<Client> current = clientService.findByLogin(user.getUsername());
-            if (current.isEmpty() || !Long.valueOf(current.get().getId()).equals(id)) {
+            if (current.isEmpty() || !current.get().getId().equals(id)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }

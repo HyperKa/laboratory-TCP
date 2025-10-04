@@ -30,7 +30,7 @@ public class ClientDTO {
 
     // Конструктор для преобразования из Entity в DTO
     public ClientDTO(Client client) {
-        this.id = (long) client.getId();
+        this.id = client.getId();
         this.age = client.getAge();
         this.gender = client.getGender();
         this.lastName = client.getLastName();

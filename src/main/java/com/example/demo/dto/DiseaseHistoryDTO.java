@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 
 public class DiseaseHistoryDTO {
 
-    private int recordId;
+    private Long recordId;
     private Long doctorId;
     private String firstNameDoctor;
     private String lastNameDoctor;
@@ -29,7 +29,7 @@ public class DiseaseHistoryDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private String disease;
-    private Integer clientId;
+    private Long clientId;
 
     // Добавляем новые поля
     @JsonIgnore
@@ -41,7 +41,7 @@ public class DiseaseHistoryDTO {
 
     // Поле для хранения списка ID записей на прием
     @JsonIgnore
-    private List<Integer> appointmentRecordIds;
+    private List<Long> appointmentRecordIds;
     // Поле для хранения полных объектов AppointmentRecord
     private List<AppointmentRecordDTO> appointmentRecords;
 
@@ -64,11 +64,11 @@ public class DiseaseHistoryDTO {
     }
 
     // Геттеры и сеттеры
-    public List<Integer> getAppointmentRecordIds() {
+    public List<Long> getAppointmentRecordIds() {
         return appointmentRecordIds;
     }
 
-    public void setAppointmentRecordIds(List<Integer> appointmentRecordIds) {
+    public void setAppointmentRecordIds(List<Long> appointmentRecordIds) {
         this.appointmentRecordIds = appointmentRecordIds;
     }
 }
