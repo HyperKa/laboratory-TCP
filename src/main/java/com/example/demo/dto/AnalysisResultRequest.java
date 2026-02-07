@@ -21,35 +21,4 @@ public class AnalysisResultRequest {
         this.analysisDate = analysisResult.getAnalysisDate();
         this.clientId = (long) analysisResult.getClient().getId();
     }
-    /*
-
-    public AnalysisResultRequest(AnalysisResult analysisResult) {
-    }
-
-    // Getters and Setters
-    public String getResearchFile() {
-        return researchFile;
-    }
-
-    public void setResearchFile(String researchFile) {
-        this.researchFile = researchFile;
-    }
-
-    public LocalDate getAnalysisDate() {
-        return analysisDate;
-    }
-
-    public void setAnalysisDate(LocalDate analysisDate) {
-        this.analysisDate = analysisDate;
-    }
-
-    public Long getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(Long clientId) {
-        this.clientId = clientId;
-    }
-
-     */
 }

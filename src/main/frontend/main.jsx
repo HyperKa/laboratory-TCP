@@ -6,14 +6,6 @@ import AnalysisResultManager from "./AnalysisResultManager";
 import DiseaseHistoryManager from "./DiseaseHistoryManager";
 import DoctorManager from "./DoctorManager";
 
-{/*
-const container = document.getElementById('react-patient-manager-container');
-if (container) {
-    const root = ReactDOM.createRoot(container);
-    root.render(<PatientManager />);
-}
-*/}
-
 const renderComponent = (Component, containerId) => {
     const container = document.getElementById(containerId);
     if (container) {

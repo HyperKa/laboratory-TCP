@@ -1,10 +1,27 @@
-<!-- header.html -->
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <div th:fragment="header">
     <header>
-        <h2>FarmLab</h2>
+        <div class="header-logo">
+            <h2>FarmLab</h2>
+        </div>
+        <nav>
+            <a th:href="@{/}">Главная</a>
+
+            <th:block sec:authorize="isAnonymous()">
+                <a th:href="@{/auth/login}">Вход</a>
+                <a th:href="@{/auth/register/client}">Регистрация</a>
+            </th:block>
+
+            <th:block sec:authorize="isAuthenticated()">
+                <a th:href="@{/client/dashboard}">Личный кабинет</a>
+                <form th:action="@{/auth/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="button-link"
+                            style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-weight:bold; font-size:15px; padding:0; margin-left:20px;">
+                        Выход
+                    </button>
+                </form>
+            </th:block>
+        </nav>
     </header>
 </div>
 </html>
-
-

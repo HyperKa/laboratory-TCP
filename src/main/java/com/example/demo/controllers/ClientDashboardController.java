@@ -234,7 +234,6 @@ public class ClientDashboardController {
 
     @GetMapping("/appointment/new")
     public String showAppointmentForm(Model model) {
-        // Заполняем форму списком врачей и т.п.
         model.addAttribute("doctors", doctorService.getAllDoctors());
         model.addAttribute("appointment", new AppointmentRecordDTO());
         return "client/appointment_form";

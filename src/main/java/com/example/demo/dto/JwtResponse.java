@@ -7,7 +7,6 @@ public class JwtResponse {
         this.token = token;
     }
 
-    // Геттеры и сеттеры
     public String getToken() {
         return token;
     }

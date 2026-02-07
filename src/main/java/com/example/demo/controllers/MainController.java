@@ -11,6 +11,6 @@ public class MainController {
 
     @GetMapping
     public String index() {
-        return "main_page"; // Это имя шаблона Thymeleaf (без расширения .html)
+        return "main_page";
     }
 }

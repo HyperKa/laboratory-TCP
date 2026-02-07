@@ -4,8 +4,10 @@ package com.example.demo.config;
 import com.example.demo.service.UserDetailsServiceImpl;
 import com.example.demo.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -24,98 +26,132 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
+    @Lazy
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-
-                .csrf(csrf -> csrf.disable()) // Отключаем CSRF для API
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-
+                .csrf(csrf -> csrf.disable())
+                // Настройка доступа к URL
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/auth/login/**").permitAll()
-                        .requestMatchers("/auth/change-password").hasRole("ADMIN")
-                        .requestMatchers("/api/auth/login/**").permitAll()
-                        .requestMatchers("/auth/register/client", "/api/auth/register/client").permitAll()
-                        .requestMatchers("/auth/register/doctor", "/api/auth/register/doctor").hasRole("ADMIN")
-                        .requestMatchers("/auth/register/admin", "/api/auth/register/admin").permitAll() // временно разрешаем для первого админа
+                        // 1. Разрешаем статику и главную
+                        .requestMatchers("/css/**", "/js/**", "/favicon.ico", "/").permitAll()
 
-                        .requestMatchers("/client/dashboard").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
+                        // 2. Разрешаем вход и регистрацию клиента
+                        .requestMatchers("/auth/login/**", "/auth/register/client", "/api/auth/login/**", "/api/auth/register/client").permitAll()
 
+                        // 3. Просмотр (GET) разрешен всем ролям (Admin, Doctor, Client)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**").authenticated()
 
-                        // Доктора может регать только админ
-                        .requestMatchers("/auth/register/doctor").hasRole("ADMIN")
+                        // 4. Управление врачами (Регистрация, удаление) - только АДМИН
+                        .requestMatchers("/auth/register/doctor/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/doctors/**").hasRole("ADMIN")
 
+                        // 5. Создание и редактирование записей (POST/PUT) - ВРАЧ и АДМИН
+                        .requestMatchers(HttpMethod.POST, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/api/v1/clients/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")  // Вот тут тестить надо
-                        //.requestMatchers(HttpMethod.GET, "/api/v1/disease-history/{id}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        //.requestMatchers(HttpMethod.GET, "/api/v1/clients").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/analysis-results/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/appointment-records/{recordId}").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/disease-history/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-
-
-                        // Доступ к веб-контроллеру /web/appointments для CLIENT, DOCTOR, ADMIN
-                        .requestMatchers("/web/appointments/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        .requestMatchers("/web/analysis-results/api/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-                        .requestMatchers("/web/analysis-results/**").hasAnyRole("CLIENT", "DOCTOR", "ADMIN")
-
-
-
-
-                        // ОГРАНИЧЕНИЕ ДЛЯ ДОКТОРОВ: не могут создавать/редактировать/удалять записи в своей таблице
-                        //.requestMatchers(HttpMethod.POST, "/api/v1/doctors/**").denyAll()
-                        //.requestMatchers(HttpMethod.PUT, "/api/v1/doctors/**").denyAll()
-                        //.requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/**").denyAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/doctors/**").hasRole("ADMIN")
-
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/doctors/**").hasRole("ADMIN")
-
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/**").hasRole("ADMIN")
-
-
-                        // РОЛЬ ДОКТОРА: доступ ко всем таблицам, но не может изменять свою таблицу
-                        .requestMatchers(HttpMethod.GET, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
-                        .requestMatchers(HttpMethod.POST, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasAnyRole("DOCTOR", "ADMIN") // Доступ к этим эндпоинтам и для доктора, и для админа
-
-
-                        // РОЛЬ АДМИНА: полный доступ ко всем таблицам
-                        .requestMatchers(HttpMethod.GET, "/api/v1/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasRole("ADMIN")
+                        // 6. Удаление (DELETE) - только АДМИН (Врач не может удалять)
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/**").hasRole("ADMIN")
-                        // тут было ограничение для доктора
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                    .anyRequest().authenticated()
-                )
 
+                        // 7. Все остальные запросы (Dashboard и прочее) должны быть просто авторизованы
+                        .anyRequest().authenticated()
+                )
+                // Добавляем JWT фильтр
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Без состояния
+                // Выключаем сессии
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Настройка выхода
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .deleteCookies("jwt")
+                        .logoutSuccessUrl("/")
+                );
 
         return http.build();
     }
-
-    /*
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Используем BCrypt для хеширования паролей
-    }
-
-     */
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    @Bean
+    public CommandLineRunner dataLoader(
+            com.example.demo.repository.AdminRepository adminRepo,
+            com.example.demo.repository.DoctorRepository doctorRepo,
+            com.example.demo.repository.ClientRepository clientRepo,
+            com.example.demo.repository.AppointmentRecordRepository appointmentRepo,
+            com.example.demo.repository.DiseaseHistoryRepository historyRepo,
+            PasswordEncoder encoder) {
+        return args -> {
+            if (adminRepo.findByLogin("admin").isEmpty()) {
+                com.example.demo.entity.Admin admin = new com.example.demo.entity.Admin();
+                admin.setLogin("admin");
+                admin.setPassword(encoder.encode("admin"));
+                adminRepo.save(admin);
+            }
+
+            com.example.demo.entity.Doctor doctor = doctorRepo.findByLogin("doctor1")
+                    .orElseGet(() -> {
+                        com.example.demo.entity.Doctor d = new com.example.demo.entity.Doctor();
+                        d.setLogin("doctor1");
+                        d.setPassword(encoder.encode("1234"));
+                        d.setFirstName("Иван");
+                        d.setLastName("Иванов");
+                        d.setSpecialization("Ветеринар-хирург");
+                        d.setExperience("10 лет");
+                        d.setRole(com.example.demo.entity.Role.DOCTOR);
+                        return doctorRepo.save(d);
+                    });
+
+            com.example.demo.entity.Client client = clientRepo.findByLogin("client1")
+                    .orElseGet(() -> {
+                        com.example.demo.entity.Client c = new com.example.demo.entity.Client();
+                        c.setLogin("client1");
+                        c.setPassword(encoder.encode("1234"));
+                        c.setFirstName("Лабрадор");
+                        c.setLastName("Рекс");
+                        c.setAge(5);
+                        c.setGender("MALE");
+                        c.setAddress("Владелец: Никита");
+                        c.setPassport("CHIP-12345");
+                        c.setRole(com.example.demo.entity.Role.CLIENT);
+                        return clientRepo.save(c);
+                    });
+
+            if (appointmentRepo.findAll().isEmpty()) {
+                String[] services = {"Осмотр", "Вакцинация", "Чистка ушей"};
+                for (int i = 0; i < 3; i++) {
+                    com.example.demo.entity.AppointmentRecord rec = new com.example.demo.entity.AppointmentRecord();
+                    rec.setClient(client);
+                    rec.setDoctor(doctor);
+                    rec.setAppointmentDate(java.time.LocalDate.now().plusDays(i + 1));
+                    rec.setAppointmentTime(java.time.LocalTime.of(10 + i, 0));
+                    rec.setServiceName(services[i]);
+                    appointmentRepo.save(rec);
+                }
+            }
+
+            if (historyRepo.findAll().isEmpty()) {
+                com.example.demo.entity.DiseaseHistory history = new com.example.demo.entity.DiseaseHistory();
+
+                history.setDoctor(doctor);
+                history.setClientId(client.getId());
+
+                history.setFirstNameDoctor(doctor.getFirstName());
+                history.setLastNameDoctor(doctor.getLastName());
+                history.setProfession(doctor.getSpecialization());
+
+                history.setDisease("Плановый осмотр и обработка");
+                history.setStartDate(java.time.LocalDateTime.now().minusDays(2));
+                history.setEndDate(java.time.LocalDateTime.now());
+
+                historyRepo.save(history);
+                System.out.println(">>> Тестовые данные (Ветклиника) успешно загружены!");
+            }
+        };
+    }
 
 }

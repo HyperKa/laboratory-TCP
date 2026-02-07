@@ -41,10 +41,6 @@ public class AuthControllerWeb {
     @Autowired private AdminRepository adminRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private BlacklistService blacklistService;
-    private Class<Object> principal;
-
-       // 🔐 Авторизация (общая)
-    // на светлую и добрую память:
 
     @PostMapping("/login/api")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
@@ -86,9 +82,6 @@ public class AuthControllerWeb {
 
     @PostMapping("/register/client")
     public String registerClient(@ModelAttribute ClientDTO dto, HttpServletResponse response) {
-        //System.out.println("Получено имя: " + dto.getFirstName());
-        //System.out.println("Логин: " + dto.getLogin());
-        //System.out.println("Пароль: " + dto.getPassword());
         if (clientRepository.findByLogin(dto.getLogin()).isPresent()) {
             //return ResponseEntity.badRequest().body("Client already exists");
             return "redirect:/auth/register/client?error=Client+already+exists";
@@ -125,16 +118,17 @@ public class AuthControllerWeb {
     }
 
     @PostMapping("/register/doctor")
-    public String registerDoctor(@ModelAttribute DoctorDTO dto, Model model, HttpServletResponse response) {
+    public String registerDoctor(@ModelAttribute DoctorDTO dto, HttpServletResponse response, Authentication authentication) {
         if (doctorRepository.findByLogin(dto.getLogin()).isPresent()) {
             return "redirect:/auth/register/doctor?error=Doctor+already+exists";
         }
 
-        // Для проверки прав админа, но есть нюанс
-        if (!userService.isAdmin(principal.getName())) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
             return "redirect:/client/dashboard?error=Only+admins+can+register+doctors";
         }
-
 
         Doctor doctor = new Doctor();
         doctor.setLogin(dto.getLogin());

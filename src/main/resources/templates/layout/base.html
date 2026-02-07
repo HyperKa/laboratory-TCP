@@ -4,21 +4,16 @@
     <meta charset="UTF-8">
     <title th:text="${pageTitle} ?: 'Медицинская система'">Медицинская система</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <!-- <link rel="stylesheet" th:href="@{/css/react_styles.css}"> -->
     <script th:src="@{/js/main.js}" defer></script>
 </head>
 <body>
 
-<!-- Вставка header -->
 <div th:replace="~{layout/header :: header}"></div>
 
-<!-- Основной контент -->
 <main>
-    <h2>Основной шаблон base.html</h2>
-    <div th:insert="${local_insert}"></div>
+    <div th:replace="${local_insert}"></div>
 </main>
 
-<!-- Вставка footer -->
 <div th:replace="~{layout/footer :: footer}"></div>
 
 <script th:src="@{/js/dist/bundle.js}"></script>

@@ -1,0 +1,36 @@
+<!--/*@thymesVar id="doctors" type="java.util.List<com.example.demo.dto.DoctorDTO>"*/-->
+<!--/*@thymesVar id="appointment" type="com.example.demo.dto.AppointmentRecordDTO"*/-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{layout/base :: maket(~{::content})}">
+    <div th:fragment="content" class="form-container">
+        <form th:action="@{/client/appointment/new}" method="post" class="form" th:object="${appointment}">
+            <h2>Запись на приём</h2>
+
+            <label>Выберите врача:</label>
+            <select th:field="*{doctorId}" required>
+                <option value="" disabled selected>-- Выберите специалиста --</option>
+                <option th:each="doc : ${doctors}"
+                        th:value="${doc.id}"
+                        th:text="${doc.lastName + ' ' + doc.firstName + ' (' + doc.specialization + ')'}">
+                </option>
+            </select>
+
+            <label>Дата приема:</label>
+            <input type="date" th:field="*{appointmentDate}" required>
+
+            <label>Время приема:</label>
+            <input type="time" th:field="*{appointmentTime}" required>
+
+            <label>Что вас беспокоит (Услуга):</label>
+            <input type="text" th:field="*{serviceName}" placeholder="Например: Первичный осмотр" required>
+
+            <button type="submit" class="button">Записаться</button>
+
+            <div style="margin-top: 15px; text-align: center;">
+                <a href="/client/dashboard" class="button-secondary" style="text-decoration: none;">Отмена</a>
+            </div>
+        </form>
+    </div>
+</th:block>
+</html>

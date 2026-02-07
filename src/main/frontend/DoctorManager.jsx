@@ -123,7 +123,9 @@ export default function DoctorManager() {
                         <div className="actions-container">
                             <button className='action-button view' onClick={() => handleOpenViewModal(doctor)}>Просмотр</button>
                             <button className='action-button edit' onClick={() => handleOpenEditModal(doctor)}>Редактировать</button>
-                            <button className='action-button delete' onClick={() => handleDelete(doctor.id)}>Удалить</button>
+                            {userRole === 'ROLE_ADMIN' && (
+                                <button className="action-button delete" onClick={() => handleDelete(doctor.id)}>Удалить</button>
+                            )}
                         </div>
                     </td>)}
                 </tr>

@@ -18,11 +18,9 @@ public class DoctorDTO {
     private String specialization;
     private String experience;
     private String login;
-    //@JsonIgnore
     private String password;
-    private Role role; // или Role (если используете Enum)
+    private Role role;
 
-    // Конструктор для преобразования из Entity в DTO
     public DoctorDTO(Doctor doctor) {
         this.id = doctor.getId();
         this.lastName = doctor.getLastName();
@@ -30,7 +28,6 @@ public class DoctorDTO {
         this.specialization = doctor.getSpecialization();
         this.experience = doctor.getExperience();
         this.login = doctor.getLogin();
-        //this.password = doctor.getPassword();
         this.role = doctor.getRole();
     }
 }

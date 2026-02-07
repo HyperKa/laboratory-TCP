@@ -1,28 +1,24 @@
-// src/main/frontend/PatientManager.jsx
 import React, { useState, useEffect } from 'react';
-// Вам понадобятся компоненты для модальных окон, их можно создать отдельно
-// import EditModal from './EditModal';
-// import ViewModal from './ViewModal';
 
 export default function PatientManager() {
-
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState(''); // Добавили состояние роли
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [editingPatient, setEditingPatient] = useState(null);
 
-
     useEffect(() => {
+        const container = document.getElementById('react-patient-manager-container');
+        const role = container ? container.dataset.userRole : '';
+        setUserRole(role);
+
         fetch('/api/v1/clients')
             .then(res => {
-                if (!res.ok) {  // проверка на статус 200 OK
-                    throw new Error('Сетевой ответ был не в порядке');
-                }
-                return res.json();  // парсинг JSON
+                if (!res.ok) throw new Error('Сетевой ответ был не в порядке');
+                return res.json();
             })
             .then(data => {
                 setPatients(data);
@@ -34,7 +30,6 @@ export default function PatientManager() {
             });
     }, []);
 
-    // Методы-обработчики модальных окон
     const handleOpenViewModal = (patient) => {
         setSelectedPatient(patient);
         setIsViewModalOpen(true);
@@ -42,7 +37,7 @@ export default function PatientManager() {
 
     const handleOpenEditModal = (patient) => {
         setSelectedPatient(patient);
-        setEditingPatient({ ...patient });  // создание копии для редактирования
+        setEditingPatient({ ...patient });
         setIsEditModalOpen(true);
     };
 
@@ -53,24 +48,25 @@ export default function PatientManager() {
         setEditingPatient(null);
     };
 
-    // CRUD-методы:
     const handleDelete = (patientId) => {
-        if (confirm(`Вы уверены, что хотите удалить пациента с ID ${patientId}?`)) {
+        if (window.confirm(`Вы уверены, что хотите удалить пациента с ID ${patientId}?`)) {
             fetch(`/api/v1/clients/${patientId}`, {
-                method: 'DELETE' })
-                .then(responce => {
-                    if (responce.ok) {
-                        setPatients(patients.filter(p => p.id != patientId));  // просто фильтровка всех пациентов, за исключением нужного
-                        alert('Клиент удален');
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        setPatients(patients.filter(p => p.id !== patientId));
+                        alert('Клиент успешно удален');
                     } else {
-                        alert('Ошибка при удалении клиента');
+                        alert('Ошибка при удалении: проверьте права доступа.');
                     }
-                });
+                })
+                .catch(error => console.error("Ошибка:", error));
         }
     };
 
     const handleInputChange = (event) => {
-        const { name, value } = event.target;  // долбаное свойство value
+        const { name, value } = event.target;
         setEditingPatient({ ...editingPatient, [name]: value});
     };
 
@@ -78,9 +74,7 @@ export default function PatientManager() {
         event.preventDefault();
         fetch(`/api/v1/clients/${editingPatient.id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(editingPatient)
         })
             .then(res => res.json())
@@ -90,15 +84,13 @@ export default function PatientManager() {
                 handleCloseModal();
             })
             .catch(error => console.error("Ошибка обновления: ", error));
-
     };
 
     if (loading) return <div>Загрузка...</div>;
 
     return (
         <div>
-            {/* Таблица пациентов */}
-            <table className="data-table">  {/* className из css */}
+            <table className="data-table">
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -117,7 +109,9 @@ export default function PatientManager() {
                             <div className="actions-container">
                                 <button className="action-button view" onClick={() => handleOpenViewModal(p)}>Просмотр</button>
                                 <button className="action-button edit" onClick={() => handleOpenEditModal(p)}>Редактировать</button>
-                                <button className="action-button delete" onClick={() => handleDelete(p.id)}>Удалить</button>
+                                {userRole === 'ROLE_ADMIN' && (
+                                    <button className="action-button delete" onClick={() => handleDelete(p.id)}>Удалить</button>
+                                )}
                             </div>
                         </td>
                     </tr>
@@ -125,20 +119,21 @@ export default function PatientManager() {
                 </tbody>
             </table>
 
-            {/* Модальные окна (рендерим по условию) */}
             {isViewModalOpen && (
                 <div className="modal show">
                     <div className="modal-content">
                         <span className="close-btn" onClick={handleCloseModal}>&times;</span>
                         <h2>Информация о клиенте</h2>
-                        <p>ID: {selectedPatient.id}</p>
-                        <p>Возраст: {selectedPatient.age}</p>
-                        <p>Пол: {selectedPatient.gender}</p>
-                        <p>Имя: {selectedPatient.firstName}</p>
-                        <p>Фамилия: {selectedPatient.lastName}</p>
-                        <p>Адрес: {selectedPatient.gender}</p>
-                        <p>Паспорт: {selectedPatient.passport}</p>
-                        <p>Логин: {selectedPatient.login}</p>
+                        <div className="modal-body">
+                            <p><strong>ID:</strong> {selectedPatient.id}</p>
+                            <p><strong>Возраст:</strong> {selectedPatient.age}</p>
+                            <p><strong>Пол:</strong> {selectedPatient.gender}</p>
+                            <p><strong>Имя:</strong> {selectedPatient.firstName}</p>
+                            <p><strong>Фамилия:</strong> {selectedPatient.lastName}</p>
+                            <p><strong>Адрес:</strong> {selectedPatient.address}</p>
+                            <p><strong>Паспорт:</strong> {selectedPatient.passport}</p>
+                            <p><strong>Логин:</strong> {selectedPatient.login}</p>
+                        </div>
                     </div>
                 </div>
             )}
@@ -148,33 +143,38 @@ export default function PatientManager() {
                     <div className="modal-content">
                         <span className="close-btn" onClick={handleCloseModal}>&times;</span>
                         <h2>Редактировать клиента</h2>
-                        {/* Здесь будет форма редактирования, которая при отправке вызывает PUT-запрос */}
-                        <form onSubmit={handleUpdateSubmit}>
-                            <label>Имя:</label>
-                            <input name="firstName" type="text" value={editingPatient.firstName} onChange={handleInputChange} />
-
-                            <label>Фамилия:</label>
-                            <input name="lastName" type="text" value={editingPatient.lastName} onChange={handleInputChange} />
-
-                            <label>Возраст:</label>
-                            <input name="age" type="number" value={editingPatient.age} onChange={handleInputChange} />
-
-                            <label>Пол:</label>
-                            <input name="gender" type="text" value={editingPatient.gender} onChange={handleInputChange} />
-
-                            <label>Адрес:</label>
-                            <input name="address" type="text" value={editingPatient.address} onChange={handleInputChange} />
-
-                            <label>Паспорт:</label>
-                            <input name="passport" type="text" value={editingPatient.passport} onChange={handleInputChange} />
-
-                            <label>Логин:</label>
-                            <input name="login" type="text" value={editingPatient.login} onChange={handleInputChange} />
-
-                            <br/><br/>
+                        <form onSubmit={handleUpdateSubmit} className="modal-form">
+                            <div className="form-group">
+                                <label>Имя:</label>
+                                <input name="firstName" type="text" value={editingPatient.firstName} onChange={handleInputChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Фамилия:</label>
+                                <input name="lastName" type="text" value={editingPatient.lastName} onChange={handleInputChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Возраст:</label>
+                                <input name="age" type="number" value={editingPatient.age} onChange={handleInputChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Пол:</label>
+                                <input name="gender" type="text" value={editingPatient.gender} onChange={handleInputChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Адрес:</label>
+                                <input name="address" type="text" value={editingPatient.address} onChange={handleInputChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Паспорт:</label>
+                                <input name="passport" type="text" value={editingPatient.passport} onChange={handleInputChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Логин:</label>
+                                <input name="login" type="text" value={editingPatient.login} onChange={handleInputChange} />
+                            </div>
                             <div className="modal-actions">
                                 <button type="submit" className="button">Сохранить</button>
-                                <button type="submit" className="button" onClick={handleCloseModal}>Отмена</button>
+                                <button type="button" className="button button-secondary" onClick={handleCloseModal}>Отмена</button>
                             </div>
                         </form>
                     </div>

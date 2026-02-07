@@ -1,19 +1,20 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:latest
+    image: postgres:16
     container_name: my_postgres_db
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: mydatabase
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
-
+    ports:
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
@@ -27,7 +28,8 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 1234
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Измените на это!
     networks:
       - app-network
 
@@ -36,6 +38,3 @@ volumes:
 
 networks:
   app-network:
-
-
-

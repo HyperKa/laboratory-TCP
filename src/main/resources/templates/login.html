@@ -1,21 +1,29 @@
 <!-- login.html -->
 <th:block th:replace="~{layout/base :: maket(~{::login})}">
     <th:block th:fragment="login">
-        <h2>Использование login.html</h2>
-        <h2>Вход в систему</h2>
-        <form th:action="@{/auth/login}" method="post">
-            <div>
-                <label for="login">Логин:</label>
-                <input type="text" id="login" name="login" required>
-            </div>
-            <div>
-                <label for="password">Пароль:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit"  class="login-button">Войти</button>
-            <div style="margin-top: 20px; text-align: center;">
-                <a href="/" class="button" style="text-decoration: none;">На главную</a>
-            </div>
-        </form>
+        <div class="form-container">
+            <form th:action="@{/auth/login}" method="post" class="form">
+                <div class="form-header">
+                    <div class="icon-circle">🔐</div>
+                    <h2>Вход в систему</h2>
+                </div>
+
+                <div class="form-group">
+                    <label for="login">Логин</label>
+                    <input type="text" id="login" name="login" required placeholder="Введите ваш логин">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required placeholder="Введите пароль">
+                </div>
+
+                <button type="submit" class="button">Войти</button>
+
+                <div class="form-footer">
+                    <a href="/" class="button button-secondary">На главную</a>
+                </div>
+            </form>
+        </div>
     </th:block>
 </th:block>

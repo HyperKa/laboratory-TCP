@@ -40,7 +40,6 @@ public class AuthController {
     @Autowired private BlacklistService blacklistService;
 
 
-       // 🔐 Авторизация (общая)
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         authenticationManager.authenticate(
@@ -56,7 +55,6 @@ public class AuthController {
     }
 
 
-    // 📝 Регистрация клиента
     @PostMapping("/register/client")
     public ResponseEntity<?> registerClient(@RequestBody ClientDTO dto) {
         if (clientRepository.findByLogin(dto.getLogin()).isPresent()) {
@@ -79,7 +77,6 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(client.getLogin(), "ROLE_CLIENT")));
     }
 
-    // 📝 Регистрация доктора
     @PostMapping("/register/doctor")
     public ResponseEntity<?> registerDoctor(@RequestBody DoctorDTO dto) {
         if (doctorRepository.findByLogin(dto.getLogin()).isPresent()) {
@@ -100,7 +97,6 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(jwtTokenService.generateTokenFromLogin(doctor.getLogin(), "ROLE_DOCTOR")));
     }
 
-    // 📝 Регистрация админа
     @PostMapping("/register/admin")
     public ResponseEntity<?> registerAdmin(@RequestBody Admin dto) {
         if (adminRepository.findByLogin(dto.getLogin()).isPresent()) {
@@ -137,7 +133,6 @@ public class AuthController {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
-                // Извлекаем дату истечения токена
                 LocalDateTime expiryDate = jwtTokenService.extractExpiration(token);
                 blacklistService.addToBlacklist(token, expiryDate);
                 return ResponseEntity.ok("Logged out successfully");

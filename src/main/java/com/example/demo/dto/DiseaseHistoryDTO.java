@@ -31,7 +31,6 @@ public class DiseaseHistoryDTO {
     private String disease;
     private Integer clientId;
 
-    // Добавляем новые поля
     @JsonIgnore
     private LocalDate appointmentDate;
     @JsonIgnore
@@ -39,13 +38,10 @@ public class DiseaseHistoryDTO {
     @JsonIgnore
     private String serviceName;
 
-    // Поле для хранения списка ID записей на прием
     @JsonIgnore
     private List<Integer> appointmentRecordIds;
-    // Поле для хранения полных объектов AppointmentRecord
     private List<AppointmentRecordDTO> appointmentRecords;
 
-    // Конструкторы, геттеры и сеттеры
     public DiseaseHistoryDTO() {}
 
     public DiseaseHistoryDTO(DiseaseHistory history) {
@@ -63,7 +59,6 @@ public class DiseaseHistoryDTO {
                 .collect(Collectors.toList());
     }
 
-    // Геттеры и сеттеры
     public List<Integer> getAppointmentRecordIds() {
         return appointmentRecordIds;
     }

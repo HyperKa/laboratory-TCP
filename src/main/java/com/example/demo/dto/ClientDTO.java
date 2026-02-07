@@ -22,13 +22,10 @@ public class ClientDTO {
     private String address;
     private String passport;
 
-    // Новые поля
     private String login;
-    //@JsonIgnore
     private String password;
-    private Role role; // или Role (если используете Enum)
+    private Role role;
 
-    // Конструктор для преобразования из Entity в DTO
     public ClientDTO(Client client) {
         this.id = (long) client.getId();
         this.age = client.getAge();
@@ -38,7 +35,6 @@ public class ClientDTO {
         this.address = client.getAddress();
         this.passport = client.getPassport();
         this.login = client.getLogin();
-        //this.password = client.getPassword();
         this.role = client.getRole();
     }
 }
